@@ -411,10 +411,41 @@ class Synset(object):
     def pos(self):
         return SHORT_POS_TAGS[self.category]
 
+    def rels(self, rel_name = None):
+        if rel_name is not None:
+            return [Synset._lookup_by_id(self._germanet_db, mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+        else:
+            return [(name, Synset._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
+
     @property
-    def rels(self):
-        return [(name, Synset._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
-    
+    def causes(self):             return self.rels('causes')
+    @property
+    def entails(self):            return self.rels('entails')
+    @property
+    def component_holonyms(self): return self.rels('has_component_holonym')
+    @property
+    def component_meronyms(self): return self.rels('has_component_meronym')
+    @property
+    def hypernyms(self):          return self.rels('has_hypernym')
+    @property
+    def hyponyms(self):           return self.rels('has_hyponym')
+    @property
+    def member_holonyms(self):    return self.rels('has_member_holonym')
+    @property
+    def member_meronyms(self):    return self.rels('has_member_meronym')
+    @property
+    def portion_holonyms(self):   return self.rels('has_portion_holonym')
+    @property
+    def portion_meronyms(self):   return self.rels('has_portion_meronym')
+    @property
+    def substance_holonyms(self): return self.rels('has_substance_holonym')
+    @property
+    def substance_meronyms(self): return self.rels('has_substance_meronym')
+    @property
+    def entailed_bys(self):       return self.rels('is_entailed_by')
+    @property
+    def related_tos(self):        return self.rels('is_related_to')
+
     def __repr__(self):
         return u'Synset({0}.{1}.{2})'.format(
             self.lemmas[0].orthForm,
@@ -479,9 +510,18 @@ class Lemma(object):
     def pos(self):
         return SHORT_POS_TAGS[self.category]
 
+    def rels(self, rel_name = None):
+        if rel_name is not None:
+            return [Lemma._lookup_by_id(self._germanet_db, mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+        else:
+            return [(name, Lemma._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
+
     @property
-    def rels(self):
-        return [(name, Lemma._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
+    def antonyms(self):    return self.rels('has_antonym')
+    @property
+    def participles(self): return self.rels('has_participle')
+    @property
+    def pertainyms(self):  return self.rels('has_pertainym')
 
     def __repr__(self):
         return u'Lemma({0}.{1}.{2}.{3})'.format(
@@ -515,3 +555,9 @@ lemma  = Lemma(germanet_db, germanet_db.lexunits.find_one())
 #[x for x in germanet_db.lexunits.find() if 'artificial' in x and x['artificial'] not in MAP_YESNO_TO_BOOL]
 #[x for x in germanet_db.lexunits.find() if 'namedEntity' in x and x['namedEntity'] not in MAP_YESNO_TO_BOOL]
 #[x for x in germanet_db.lexunits.find() if 'sense' in x and not x['sense'].isdigit()]
+
+#utils.reduce_sets_or([[y[0] for y in x['rels']] for x in germanet_db.lexunits.find() if 'rels' in x])
+# set([u'has_participle', u'has_pertainym', u'has_antonym'])
+#>>> utils.reduce_sets_or([[y[0] for y in x['rels']] for x in germanet_db.synsets.find() if 'rels' in x])
+#set([u'is_related_to', u'is_entailed_by', u'has_component_holonym', u'has_hypernym', u'has_portion_meronym', u'has_portion_holonym', u'has_substance_holonym', u'has_hyponym', u'has_member_holonym', u'causes', u'has_member_meronym', u'has_component_meronym', u'entails', u'has_substance_meronym'])
+
