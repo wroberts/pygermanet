@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from collections import defaultdict
-from pymongo import MongoClient
+from pymongo import DESCENDING, MongoClient
 import glob
 import os
 import re
@@ -293,6 +293,10 @@ def insert_lexical_information(germanet_db, lex_files):
     # index the two collections by id
     germanet_db.synsets.create_index('id')
     germanet_db.lexunits.create_index('id')
+    # also index lexunits by lemma-pos-sensenum
+    germanet_db.lexunits.create_index([('orthForm', DESCENDING),
+                                       ('category', DESCENDING),
+                                       ('sense', DESCENDING)])
     print 'Inserted {0} synsets, {1} lexical units.'.format(
         germanet_db.synsets.count(),
         germanet_db.lexunits.count())
@@ -366,11 +370,61 @@ if 0:
 #  GermaNet interface
 # ------------------------------------------------------------
 
-SHORT_POS_TAGS = {
+LONG_POS_TO_SHORT = {
     'verben': 'v',
     'nomen':  'n',
     'adj':    'j',
     }
+
+SHORT_POS_TO_LONG = dict((v, k) for (k, v) in LONG_POS_TO_SHORT.items())
+
+class GermaNet(object):
+    '''A class representing the GermaNet database.'''
+
+    def __init__(self, mongo_db):
+        '''
+        Creates a new GermaNet object.
+
+        Arguments:
+        - `mongo_db`: a pymongo.database.Database object containing
+          the GermaNet lexicon
+        '''
+        self._mongo_db = mongo_db
+
+    def synset(self, synset_repr):
+        '''
+        Looks up a synset in GermaNet using its string representation.
+
+        Arguments:
+        - `synset_repr`: a unicode string containing the lemma, part
+          of speech, and sense number of the first lemma of the synset
+
+        >>> gn.synset(u'funktionieren.v.2')
+        Synset(funktionieren.v.2)
+        '''
+        parts = synset_repr.split('.')
+        if len(parts) != 3:
+            return None
+        lemma, pos, sensenum = parts
+        if (not sensenum.isdigit() or pos not in SHORT_POS_TO_LONG):
+            return None
+        sensenum   = int(sensenum, 10)
+        pos        = SHORT_POS_TO_LONG[pos]
+        lemma_dict = self._mongo_db.lexunits.find_one({'orthForm': lemma,
+                                                       'category': pos,
+                                                       'sense':    sensenum})
+        if lemma_dict:
+            return Lemma(self, lemma_dict).synset
+
+    def get_synset_by_id(self, mongo_id):
+        synset_dict = self._mongo_db.synsets.find_one({'_id': mongo_id})
+        if synset_dict is not None:
+            return Synset(self, synset_dict)
+
+    def get_lemma_by_id(self, mongo_id):
+        lemma_dict = self._mongo_db.lexunits.find_one({'_id': mongo_id})
+        if lemma_dict is not None:
+            return Lemma(self, lemma_dict)
 
 # rename some of the fields in the MongoDB dictionary
 SYNSET_MEMBER_REWRITES = {
@@ -381,16 +435,16 @@ SYNSET_MEMBER_REWRITES = {
 class Synset(object):
     '''A class representing a synset in GermaNet.'''
 
-    def __init__(self, germanet_db, db_dict):
+    def __init__(self, germanet, db_dict):
         '''
         Creates a new Synset object from a BSON dictionary retrieved
         from MongoDB.
 
         Arguments:
-        - `germanet_db`:
+        - `germanet`: a GermaNet object
         - `db_dict`:
         '''
-        self._germanet_db = germanet_db
+        self._germanet    = germanet
         self._id          = None
         self._rels        = []
         self.category     = None
@@ -399,23 +453,19 @@ class Synset(object):
         self._lexunits    = None
         self.__dict__.update((SYNSET_MEMBER_REWRITES.get(k, k), v) for (k, v) in db_dict.iteritems())
 
-    @staticmethod
-    def _lookup_by_id(germanet_db, mongo_id):
-        return Synset(germanet_db, germanet_db.synsets.find_one({'_id': mongo_id}))
-
     @property
     def lemmas(self):
-        return [Lemma._lookup_by_id(self._germanet_db, lemma) for lemma in self._lexunits]
+        return [self._germanet.get_lemma_by_id(lemma) for lemma in self._lexunits]
 
     @property
     def pos(self):
-        return SHORT_POS_TAGS[self.category]
+        return LONG_POS_TO_SHORT[self.category]
 
     def rels(self, rel_name = None):
         if rel_name is not None:
-            return [Synset._lookup_by_id(self._germanet_db, mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+            return [self._germanet.get_synset_by_id(mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
         else:
-            return [(name, Synset._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
+            return [(name, self._germanet.get_synset_by_id(mongo_id)) for (name, mongo_id) in self._rels]
 
     @property
     def causes(self):             return self.rels('causes')
@@ -470,16 +520,16 @@ LEMMA_MEMBER_REWRITES = {
 class Lemma(object):
     '''A class representing a lexical unit in GermaNet.'''
 
-    def __init__(self, germanet_db, db_dict):
+    def __init__(self, germanet, db_dict):
         '''
         Creates a new Lemma object from a BSON dictionary retrieved
         from MongoDB.
 
         Arguments:
-        - `germanet_db`:
+        - `germanet`: a GermaNet object
         - `db_dict`:
         '''
-        self._germanet_db = germanet_db
+        self._germanet    = germanet
         self._id          = None
         self._rels        = []
         self.artificial   = None
@@ -498,23 +548,19 @@ class Lemma(object):
         self._synset      = None
         self.__dict__.update((LEMMA_MEMBER_REWRITES.get(k, k), v) for (k, v) in db_dict.iteritems())
 
-    @staticmethod
-    def _lookup_by_id(germanet_db, mongo_id):
-        return Lemma(germanet_db, germanet_db.lexunits.find_one({'_id': mongo_id}))
-
     @property
     def synset(self):
-        return Synset._lookup_by_id(self._germanet_db, self._synset)
+        return self._germanet.get_synset_by_id(self._synset)
 
     @property
     def pos(self):
-        return SHORT_POS_TAGS[self.category]
+        return LONG_POS_TO_SHORT[self.category]
 
     def rels(self, rel_name = None):
         if rel_name is not None:
-            return [Lemma._lookup_by_id(self._germanet_db, mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+            return [self._germanet.get_lemma_by_id(mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
         else:
-            return [(name, Lemma._lookup_by_id(self._germanet_db, mongo_id)) for (name, mongo_id) in self._rels]
+            return [(name, self._germanet.get_lemma_by_id(mongo_id)) for (name, mongo_id) in self._rels]
 
     @property
     def antonyms(self):    return self.rels('has_antonym')
@@ -539,8 +585,9 @@ class Lemma(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-synset = Synset(germanet_db, germanet_db.synsets.find_one({'category':'nomen'}))
-lemma  = Lemma(germanet_db, germanet_db.lexunits.find_one())
+gn     = GermaNet(germanet_db)
+synset = Synset(gn, germanet_db.synsets.find_one({'category':'nomen'}))
+lemma  = Lemma(gn, germanet_db.lexunits.find_one())
 
 #import utils
 #a = utils.reduce_sets_or(x.keys() for x in germanet_db.lexunits.find())
