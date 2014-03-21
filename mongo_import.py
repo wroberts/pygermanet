@@ -66,10 +66,37 @@ def find_germanet_xml_files(xml_path):
 #  Read lexical files
 # ------------------------------------------------------------
 
-SYNSET_ATTRIBS   = ['category', 'id', 'class']
-LEXUNIT_ATTRIBS  = ['styleMarking', 'namedEntity', 'artificial', 'source', 'sense', 'id']
-MODIFIER_ATTRIBS = ['category', 'property']
-HEAD_ATTRIBS     = ['property']
+def warn_attribs(loc,
+                 node,
+                 recognised_attribs,
+                 reqd_attribs = None):
+    '''
+    Error checking of XML input: check that the given node has certain
+    required attributes, and does not have any unrecognised
+    attributes.
+
+    Arguments:
+    - `loc`: a string with some information about the location of the
+      error in the XML file
+    - `node`: the node to check
+    - `recognised_attribs`: a set of node attributes which we know how
+      to handle
+    - `reqd_attribs`: a set of node attributes which we require to be
+      present; if this argument is None, it will take the same value
+      as `recognised_attribs`
+    '''
+    if reqd_attribs is None:
+        reqd_attribs = recognised_attribs
+    found_attribs = set(node.keys())
+    if reqd_attribs - found_attribs:
+        print loc, 'missing <{0}> attributes'.format(node.tag), reqd_attribs - found_attribs
+    if found_attribs - recognised_attribs:
+        print loc, 'unrecognised <{0}> properties'.format(node.tag), found_attribs - recognised_attribs
+
+SYNSET_ATTRIBS   = set(['category', 'id', 'class'])
+LEXUNIT_ATTRIBS  = set(['styleMarking', 'namedEntity', 'artificial', 'source', 'sense', 'id'])
+MODIFIER_ATTRIBS = set(['category', 'property'])
+HEAD_ATTRIBS     = set(['property'])
 
 MAP_YESNO_TO_BOOL = {
     'yes': True,
@@ -88,10 +115,7 @@ def read_lexical_file(filename):
             continue
         synset_dict = dict(synset.items())
         synloc = '{0} synset {1},'.format(filename, synset_dict.get('id', '???'))
-        if set(SYNSET_ATTRIBS) - set(synset_dict):
-            print synloc, 'missing synset properties', set(SYNSET_ATTRIBS) - set(synset_dict)
-        if set(synset_dict) - set(SYNSET_ATTRIBS):
-            print synloc, 'unrecognised synset properties', set(synset_dict) - set(SYNSET_ATTRIBS)
+        warn_attribs(synloc, synset, SYNSET_ATTRIBS)
         synset_dict['lexunits'] = []
         synsets.append(synset_dict)
 
@@ -100,10 +124,7 @@ def read_lexical_file(filename):
                 lexunit      = child
                 lexunit_dict = dict(lexunit.items())
                 lexloc       = synloc + ' lexUnit {0},'.format(lexunit_dict.get('id', '???'))
-                if set(LEXUNIT_ATTRIBS) - set(lexunit_dict):
-                    print lexloc, 'missing lexunit properties', set(LEXUNIT_ATTRIBS) - set(lexunit_dict)
-                if set(lexunit_dict) - set(LEXUNIT_ATTRIBS):
-                    print lexloc, 'unrecognised lexunit properties', set(lexunit_dict) - set(LEXUNIT_ATTRIBS)
+                warn_attribs(lexloc, lexunit, LEXUNIT_ATTRIBS)
                 # convert some properties to booleans
                 for key in ['styleMarking', 'artificial', 'namedEntity']:
                     if key in lexunit_dict:
@@ -125,8 +146,7 @@ def read_lexical_file(filename):
                                      'orthVar',
                                      'oldOrthForm',
                                      'oldOrthVar']:
-                        if child.keys():
-                            print lexloc, 'unrecognised {0} properties'.format(child.tag), child.keys()
+                        warn_attribs(lexloc, child, [])
                         if not child.text:
                             print lexloc, '{0} with no text'.format(child.tag)
                             continue
@@ -145,8 +165,7 @@ def read_lexical_file(filename):
                             elif child.tag == 'exframe':
                                 if 'exframe' in example_dict:
                                     print lexloc, 'more than one <exframe> for <example>'
-                                if child.keys():
-                                    print lexloc, 'unrecognised <exframe> properties', child.keys()
+                                warn_attribs(lexloc, child, [])
                                 if not child.text:
                                     print lexloc, '<exframe> with no text'
                                     continue
@@ -156,8 +175,7 @@ def read_lexical_file(filename):
                         lexunit_dict['examples'].append(example_dict)
                     elif child.tag == 'frame':
                         frame = child
-                        if frame.keys():
-                            print lexloc, 'unrecognized <frame> properties', frame.keys()
+                        warn_attribs(lexloc, frame, [])
                         if 0 < len(frame):
                             print lexloc, 'unrecognized <frame> children', list(frame)
                         if not frame.text:
@@ -166,14 +184,12 @@ def read_lexical_file(filename):
                         lexunit_dict['frames'].append(unicode(frame.text))
                     elif child.tag == 'compound':
                         compound = child
-                        if compound.keys():
-                            print lexloc, 'unrecognized <compound> properties', compound.keys()
+                        warn_attribs(lexloc, compound, [])
                         compound_dict = {}
                         for child in compound:
                             if child.tag == 'modifier':
                                 modifier_dict = dict(child.items())
-                                if set(modifier_dict) - set(MODIFIER_ATTRIBS):
-                                    print lexloc, 'unrecognised modifier properties', set(modifier_dict) - set(MODIFIER_ATTRIBS)
+                                warn_attribs(lexloc, child, MODIFIER_ATTRIBS, [])
                                 if not child.text:
                                     print lexloc, 'modifier without text'
                                     continue
@@ -183,8 +199,7 @@ def read_lexical_file(filename):
                                 compound_dict['modifier'].append(modifier_dict)
                             elif child.tag == 'head':
                                 head_dict = dict(child.items())
-                                if set(head_dict) - set(HEAD_ATTRIBS):
-                                    print lexloc, 'unrecognised <head> properties', set(head_dict) - set(HEAD_ATTRIBS)
+                                warn_attribs(lexloc, child, HEAD_ATTRIBS, [])
                                 if not child.text:
                                     print lexloc, '<head> without text'
                                     continue
@@ -200,8 +215,7 @@ def read_lexical_file(filename):
                         continue
             elif child.tag == 'paraphrase':
                 paraphrase = child
-                if paraphrase.keys():
-                    print synloc, 'unrecognised paraphrase properties', paraphrase.keys()
+                warn_attribs(synloc, paraphrase, [])
                 paraphrase_text = unicode(paraphrase.text)
                 if not paraphrase_text:
                     print synloc, 'WARNING: <paraphrase> tag with no text'
@@ -234,10 +248,7 @@ def read_relation_file(filename):
             if 0 < len(child):
                 print '<lex_rel> has unexpected child node'
             child_dict = dict(child.items())
-            if set(child_dict) - RELATION_ATTRIBS:
-                print '<lex_rel> has unexpected properties', set(child_dict) - RELATION_ATTRIBS
-            if RELATION_ATTRIBS_REQD - set(child_dict):
-                print '<lex_rel> has missing properties', RELATION_ATTRIBS_REQD - set(child_dict)
+            warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in LEX_REL_DIRS:
                 print 'unrecognized <lex_rel> dir', child_dict['dir']
             if child_dict['dir'] == 'both' and 'inv' not in child_dict:
@@ -247,10 +258,7 @@ def read_relation_file(filename):
             if 0 < len(child):
                 print '<con_rel> has unexpected child node'
             child_dict = dict(child.items())
-            if set(child_dict) - RELATION_ATTRIBS:
-                print '<con_rel> has unexpected properties', set(child_dict) - RELATION_ATTRIBS
-            if RELATION_ATTRIBS_REQD - set(child_dict):
-                print '<con_rel> has missing properties', RELATION_ATTRIBS_REQD - set(child_dict)
+            warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in CON_REL_DIRS:
                 print 'unrecognized <con_rel> dir', child_dict['dir']
             if child_dict['dir'] in ['both', 'revert'] and 'inv' not in child_dict:
