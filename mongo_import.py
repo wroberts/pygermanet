@@ -293,7 +293,10 @@ def insert_lexical_information(germanet_db, lex_files):
     # index the two collections by id
     germanet_db.synsets.create_index('id')
     germanet_db.lexunits.create_index('id')
-    # also index lexunits by lemma-pos-sensenum
+    # also index lexunits by lemma, lemma-pos, and lemma-pos-sensenum
+    germanet_db.lexunits.create_index([('orthForm', DESCENDING)])
+    germanet_db.lexunits.create_index([('orthForm', DESCENDING),
+                                       ('category', DESCENDING)])
     germanet_db.lexunits.create_index([('orthForm', DESCENDING),
                                        ('category', DESCENDING),
                                        ('sense', DESCENDING)])
@@ -370,6 +373,8 @@ if 0:
 #  GermaNet interface
 # ------------------------------------------------------------
 
+import functools
+
 LONG_POS_TO_SHORT = {
     'verben': 'v',
     'nomen':  'n',
@@ -390,6 +395,34 @@ class GermaNet(object):
           the GermaNet lexicon
         '''
         self._mongo_db = mongo_db
+
+    def lemmas(self, lemma, pos = None):
+        '''
+        Looks up lemmas in the GermaNet database.
+
+        Arguments:
+        - `lemma`:
+        - `pos`:
+        '''
+        if pos is not None:
+            if pos not in SHORT_POS_TO_LONG:
+                return None
+            pos         = SHORT_POS_TO_LONG[pos]
+            lemma_dicts = self._mongo_db.lexunits.find({'orthForm': lemma,
+                                                        'category': pos})
+        else:
+            lemma_dicts = self._mongo_db.lexunits.find({'orthForm': lemma})
+        return sorted([Lemma(self, lemma_dict) for lemma_dict in lemma_dicts])
+
+    def synsets(self, lemma, pos = None):
+        '''
+        Looks up synsets in the GermaNet database.
+
+        Arguments:
+        - `lemma`:
+        - `pos`:
+        '''
+        return sorted(set(lemma.synset for lemma in self.lemmas(lemma, pos)))
 
     def synset(self, synset_repr):
         '''
@@ -432,6 +465,7 @@ SYNSET_MEMBER_REWRITES = {
     'rels':     '_rels',
     }
 
+@functools.total_ordering
 class Synset(object):
     '''A class representing a synset in GermaNet.'''
 
@@ -496,6 +530,26 @@ class Synset(object):
     @property
     def related_tos(self):        return self.rels('is_related_to')
 
+    @property
+    def hypernym_paths(self):
+        '''
+        Returns a list of paths following hypernym links from this
+        synset to the GermaNet root node.
+        '''
+        hypernyms = self.hypernyms
+        if hypernyms:
+            return reduce(list.__add__, [[path + [self] for path in hypernym.hypernym_paths] for hypernym in hypernyms], [])
+        else:
+            return [[self]]
+
+    @property
+    def root_hypernyms(self):
+        '''
+        Get the topmost hypernym(s) of this synset in GermaNet.
+        Mostly GNROOT.n.1
+        '''
+        return sorted(set([path[0] for path in self.hypernym_paths]))
+
     def __repr__(self):
         return u'Synset({0}.{1}.{2})'.format(
             self.lemmas[0].orthForm,
@@ -511,12 +565,20 @@ class Synset(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        if isinstance(other, self.__class__):
+            return ((self.lemmas[0].orthForm, self.pos, self.lemmas[0].sense) <
+                    (other.lemmas[0].orthForm, other.pos, other.lemmas[0].sense))
+        else:
+            return False
+
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
     'synset': '_synset',
     'rels':   '_rels',
     }
 
+@functools.total_ordering
 class Lemma(object):
     '''A class representing a lexical unit in GermaNet.'''
 
@@ -585,6 +647,13 @@ class Lemma(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __lt__(self, other):
+        if isinstance(other, self.__class__):
+            return ((self.orthForm, self.pos, self.sense) <
+                    (other.orthForm, other.pos, other.sense))
+        else:
+            return False
+
 gn     = GermaNet(germanet_db)
 synset = Synset(gn, germanet_db.synsets.find_one({'category':'nomen'}))
 lemma  = Lemma(gn, germanet_db.lexunits.find_one())
@@ -608,3 +677,6 @@ lemma  = Lemma(gn, germanet_db.lexunits.find_one())
 #>>> utils.reduce_sets_or([[y[0] for y in x['rels']] for x in germanet_db.synsets.find() if 'rels' in x])
 #set([u'is_related_to', u'is_entailed_by', u'has_component_holonym', u'has_hypernym', u'has_portion_meronym', u'has_portion_holonym', u'has_substance_holonym', u'has_hyponym', u'has_member_holonym', u'causes', u'has_member_meronym', u'has_component_meronym', u'entails', u'has_substance_meronym'])
 
+#[x for x in germanet_db.synsets.find() if 'rels' in x and len([y for y in x['rels'] if y[0] == 'has_hypernym']) > 1]
+
+#pprint(gn.synset('Husky.n.1').hypernym_paths)
