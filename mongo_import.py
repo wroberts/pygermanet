@@ -1,6 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+'''
+mongo_import.py
+(c) Will Roberts  21 March, 2014
+
+A script to import the GermaNet lexicon into a MongoDB database.
+'''
+
 from pymongo import DESCENDING, MongoClient
 import glob
 import os
@@ -13,6 +20,14 @@ import xml.etree.ElementTree as etree
 # ------------------------------------------------------------
 
 def find_germanet_xml_files(xml_path):
+    '''
+    Globs the XML files contained in the given directory and sorts
+    them into sections for import into the MongoDB database.
+
+    Arguments:
+    - `xml_path`: the path to the directory containing the GermaNet
+      XML files
+    '''
     xml_files = sorted(glob.glob(os.path.join(xml_path, '*.xml')))
 
     # sort out the lexical files
@@ -89,12 +104,15 @@ def warn_attribs(loc,
         reqd_attribs = recognised_attribs
     found_attribs = set(node.keys())
     if reqd_attribs - found_attribs:
-        print loc, 'missing <{0}> attributes'.format(node.tag), reqd_attribs - found_attribs
+        print loc, 'missing <{0}> attributes'.format(node.tag), (
+            reqd_attribs - found_attribs)
     if found_attribs - recognised_attribs:
-        print loc, 'unrecognised <{0}> properties'.format(node.tag), found_attribs - recognised_attribs
+        print loc, 'unrecognised <{0}> properties'.format(node.tag), (
+            found_attribs - recognised_attribs)
 
 SYNSET_ATTRIBS   = set(['category', 'id', 'class'])
-LEXUNIT_ATTRIBS  = set(['styleMarking', 'namedEntity', 'artificial', 'source', 'sense', 'id'])
+LEXUNIT_ATTRIBS  = set(['styleMarking', 'namedEntity', 'artificial',
+                        'source', 'sense', 'id'])
 MODIFIER_ATTRIBS = set(['category', 'property'])
 HEAD_ATTRIBS     = set(['property'])
 
@@ -104,6 +122,13 @@ MAP_YESNO_TO_BOOL = {
     }
 
 def read_lexical_file(filename):
+    '''
+    Reads in a GermaNet lexical information file and returns its
+    contents as a list of dictionary structures.
+
+    Arguments:
+    - `filename`: the name of the XML file to read
+    '''
     with open(filename, 'r') as input_file:
         doc = etree.parse(input_file)
 
@@ -114,7 +139,8 @@ def read_lexical_file(filename):
             print 'unrecognised child of <synsets>', synset
             continue
         synset_dict = dict(synset.items())
-        synloc = '{0} synset {1},'.format(filename, synset_dict.get('id', '???'))
+        synloc = '{0} synset {1},'.format(filename,
+                                          synset_dict.get('id', '???'))
         warn_attribs(synloc, synset, SYNSET_ATTRIBS)
         synset_dict['lexunits'] = []
         synsets.append(synset_dict)
@@ -123,13 +149,16 @@ def read_lexical_file(filename):
             if child.tag == 'lexUnit':
                 lexunit      = child
                 lexunit_dict = dict(lexunit.items())
-                lexloc       = synloc + ' lexUnit {0},'.format(lexunit_dict.get('id', '???'))
+                lexloc       = synloc + ' lexUnit {0},'.format(
+                    lexunit_dict.get('id', '???'))
                 warn_attribs(lexloc, lexunit, LEXUNIT_ATTRIBS)
                 # convert some properties to booleans
                 for key in ['styleMarking', 'artificial', 'namedEntity']:
                     if key in lexunit_dict:
                         if lexunit_dict[key] not in MAP_YESNO_TO_BOOL:
-                            print lexloc, 'lexunit property {0} has non-boolean value'.format(key), lexunit_dict[key]
+                            print lexloc, ('lexunit property {0} has '
+                                           'non-boolean value').format(key), \
+                                           lexunit_dict[key]
                             continue
                         lexunit_dict[key] = MAP_YESNO_TO_BOOL[lexunit_dict[key]]
                 # convert sense to integer number
@@ -137,7 +166,9 @@ def read_lexical_file(filename):
                     if lexunit_dict['sense'].isdigit():
                         lexunit_dict['sense'] = int(lexunit_dict['sense'], 10)
                     else:
-                        print lexloc, 'lexunit property sense has non-numeric value', lexunit_dict['sense']
+                        print lexloc, ('lexunit property sense has '
+                                       'non-numeric value'), \
+                                       lexunit_dict['sense']
                 synset_dict['lexunits'].append(lexunit_dict)
                 lexunit_dict['examples'] = []
                 lexunit_dict['frames']   = []
@@ -155,7 +186,8 @@ def read_lexical_file(filename):
                         lexunit_dict[child.tag] = unicode(child.text)
                     elif child.tag == 'example':
                         example = child
-                        text = [child for child in example if child.tag == 'text']
+                        text = [child for child in example
+                                if child.tag == 'text']
                         if len(text) != 1 or not text[0].text:
                             print lexloc, '<example> tag without text'
                         example_dict = {'text': unicode(text[0].text)}
@@ -164,20 +196,23 @@ def read_lexical_file(filename):
                                 continue
                             elif child.tag == 'exframe':
                                 if 'exframe' in example_dict:
-                                    print lexloc, 'more than one <exframe> for <example>'
+                                    print lexloc, ('more than one <exframe> '
+                                                   'for <example>')
                                 warn_attribs(lexloc, child, [])
                                 if not child.text:
                                     print lexloc, '<exframe> with no text'
                                     continue
                                 example_dict['exframe'] = unicode(child.text)
                             else:
-                                print lexloc, 'unrecognised child of <example>', child
+                                print lexloc, ('unrecognised child of '
+                                               '<example>'), child
                         lexunit_dict['examples'].append(example_dict)
                     elif child.tag == 'frame':
                         frame = child
                         warn_attribs(lexloc, frame, [])
                         if 0 < len(frame):
-                            print lexloc, 'unrecognized <frame> children', list(frame)
+                            print lexloc, 'unrecognized <frame> children', \
+                                list(frame)
                         if not frame.text:
                             print lexloc, '<frame> without text'
                             continue
@@ -189,7 +224,8 @@ def read_lexical_file(filename):
                         for child in compound:
                             if child.tag == 'modifier':
                                 modifier_dict = dict(child.items())
-                                warn_attribs(lexloc, child, MODIFIER_ATTRIBS, [])
+                                warn_attribs(lexloc, child,
+                                             MODIFIER_ATTRIBS, [])
                                 if not child.text:
                                     print lexloc, 'modifier without text'
                                     continue
@@ -205,10 +241,12 @@ def read_lexical_file(filename):
                                     continue
                                 head_dict['text'] = unicode(child.text)
                                 if 'head' in compound_dict:
-                                    print lexloc, 'more than one head in <compound>'
+                                    print lexloc, ('more than one head in '
+                                                   '<compound>')
                                 compound_dict['head'] = head_dict
                             else:
-                                print lexloc, 'unrecognised child of <compound>', child
+                                print lexloc, ('unrecognised child of '
+                                               '<compound>'), child
                                 continue
                     else:
                         print lexloc, 'unrecognised child of <lexUnit>', child
@@ -237,6 +275,13 @@ LEX_REL_DIRS          = set(['both', 'one'])
 CON_REL_DIRS          = set(['both', 'revert', 'one'])
 
 def read_relation_file(filename):
+    '''
+    Reads the GermaNet relation file ``gn_relations.xml`` which lists
+    all the relations holding between lexical units and synsets.
+
+    Arguments:
+    - `filename`:
+    '''
     with open(filename, 'r') as input_file:
         doc = etree.parse(input_file)
 
@@ -261,8 +306,10 @@ def read_relation_file(filename):
             warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in CON_REL_DIRS:
                 print 'unrecognized <con_rel> dir', child_dict['dir']
-            if child_dict['dir'] in ['both', 'revert'] and 'inv' not in child_dict:
-                print '<con_rel> has dir={0} but does not specify inv'.format(child_dict['dir'])
+            if (child_dict['dir'] in ['both', 'revert'] and
+                'inv' not in child_dict):
+                print '<con_rel> has dir={0} but does not specify inv'.format(
+                    child_dict['dir'])
             con_rels.append(child_dict)
         else:
             print 'unrecognised child of <relations>', child
@@ -282,6 +329,15 @@ SYNSET_KEY_REWRITES = {
     }
 
 def insert_lexical_information(germanet_db, lex_files):
+    '''
+    Reads in the given lexical information files and inserts their
+    contents into the given MongoDB database.
+
+    Arguments:
+    - `germanet_db`: a pymongo.database.Database object
+    - `lex_files`: a list of paths to XML files containing lexial
+      information
+    '''
     # drop the database collections if they already exist
     germanet_db.lexunits.drop()
     germanet_db.synsets.drop()
@@ -289,7 +345,8 @@ def insert_lexical_information(germanet_db, lex_files):
     for lex_file in lex_files:
         synsets = read_lexical_file(lex_file)
         for synset in synsets:
-            synset = dict((SYNSET_KEY_REWRITES.get(key, key), value) for (key, value) in synset.iteritems())
+            synset = dict((SYNSET_KEY_REWRITES.get(key, key), value)
+                          for (key, value) in synset.iteritems())
             lexunits = synset['lexunits']
             synset['lexunits'] = germanet_db.lexunits.insert(lexunits)
             synset_id = germanet_db.synsets.insert(synset)
@@ -312,16 +369,26 @@ def insert_lexical_information(germanet_db, lex_files):
         germanet_db.lexunits.count())
 
 def insert_relation_information(germanet_db, gn_rels_file):
+    '''
+    Reads in the given GermaNet relation file and inserts its contents
+    into the given MongoDB database.
+
+    Arguments:
+    - `germanet_db`: a pymongo.database.Database object
+    - `gn_rels_file`:
+    '''
     lex_rels, con_rels = read_relation_file(gn_rels_file)
 
     # cache the lexunits while we work on them
     lexunits = {}
     for lex_rel in lex_rels:
         if lex_rel['from'] not in lexunits:
-            lexunits[lex_rel['from']] = germanet_db.lexunits.find_one({'id': lex_rel['from']})
+            lexunits[lex_rel['from']] = germanet_db.lexunits.find_one(
+                {'id': lex_rel['from']})
         from_lexunit = lexunits[lex_rel['from']]
         if lex_rel['to'] not in lexunits:
-            lexunits[lex_rel['to']] = germanet_db.lexunits.find_one({'id': lex_rel['to']})
+            lexunits[lex_rel['to']] = germanet_db.lexunits.find_one(
+                {'id': lex_rel['to']})
         to_lexunit = lexunits[lex_rel['to']]
         if 'rels' not in from_lexunit:
             from_lexunit['rels'] = set()
@@ -339,10 +406,12 @@ def insert_relation_information(germanet_db, gn_rels_file):
     synsets = {}
     for con_rel in con_rels:
         if con_rel['from'] not in synsets:
-            synsets[con_rel['from']] = germanet_db.synsets.find_one({'id': con_rel['from']})
+            synsets[con_rel['from']] = germanet_db.synsets.find_one(
+                {'id': con_rel['from']})
         from_synset = synsets[con_rel['from']]
         if con_rel['to'] not in synsets:
-            synsets[con_rel['to']] = germanet_db.synsets.find_one({'id': con_rel['to']})
+            synsets[con_rel['to']] = germanet_db.synsets.find_one(
+                {'id': con_rel['to']})
         to_synset = synsets[con_rel['to']]
         if 'rels' not in from_synset:
             from_synset['rels'] = set()
