@@ -258,7 +258,7 @@ def read_relation_file(filename):
                 print '<con_rel> has dir={0} but does not specify inv'.format(child_dict['dir'])
             con_rels.append(child_dict)
         else:
-            print 'unrecognised child of <relations>', synset
+            print 'unrecognised child of <relations>', child
             continue
 
     return lex_rels, con_rels
