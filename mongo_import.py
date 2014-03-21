@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from collections import defaultdict
 from pymongo import DESCENDING, MongoClient
 import glob
 import os
