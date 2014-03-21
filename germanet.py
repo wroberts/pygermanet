@@ -5,7 +5,7 @@
 germanet.py
 (c) Will Roberts  21 March, 2014
 
-GermaNet interface
+GermaNet interface.
 '''
 
 from pymongo import DESCENDING, MongoClient
