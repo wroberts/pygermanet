@@ -179,7 +179,7 @@ def read_lexical_file(filename):
                                      'orthVar',
                                      'oldOrthForm',
                                      'oldOrthVar']:
-                        warn_attribs(lexloc, child, [])
+                        warn_attribs(lexloc, child, set())
                         if not child.text:
                             print lexloc, '{0} with no text'.format(child.tag)
                             continue
@@ -200,7 +200,7 @@ def read_lexical_file(filename):
                                 if 'exframe' in example_dict:
                                     print lexloc, ('more than one <exframe> '
                                                    'for <example>')
-                                warn_attribs(lexloc, child, [])
+                                warn_attribs(lexloc, child, set())
                                 if not child.text:
                                     print lexloc, '<exframe> with no text'
                                     continue
@@ -211,7 +211,7 @@ def read_lexical_file(filename):
                         lexunit_dict['examples'].append(example_dict)
                     elif child.tag == 'frame':
                         frame = child
-                        warn_attribs(lexloc, frame, [])
+                        warn_attribs(lexloc, frame, set())
                         if 0 < len(frame):
                             print lexloc, 'unrecognized <frame> children', \
                                 list(frame)
@@ -221,13 +221,13 @@ def read_lexical_file(filename):
                         lexunit_dict['frames'].append(unicode(frame.text))
                     elif child.tag == 'compound':
                         compound = child
-                        warn_attribs(lexloc, compound, [])
+                        warn_attribs(lexloc, compound, set())
                         compound_dict = {}
                         for child in compound:
                             if child.tag == 'modifier':
                                 modifier_dict = dict(child.items())
                                 warn_attribs(lexloc, child,
-                                             MODIFIER_ATTRIBS, [])
+                                             MODIFIER_ATTRIBS, set())
                                 if not child.text:
                                     print lexloc, 'modifier without text'
                                     continue
@@ -237,7 +237,7 @@ def read_lexical_file(filename):
                                 compound_dict['modifier'].append(modifier_dict)
                             elif child.tag == 'head':
                                 head_dict = dict(child.items())
-                                warn_attribs(lexloc, child, HEAD_ATTRIBS, [])
+                                warn_attribs(lexloc, child, HEAD_ATTRIBS, set())
                                 if not child.text:
                                     print lexloc, '<head> without text'
                                     continue
@@ -255,7 +255,7 @@ def read_lexical_file(filename):
                         continue
             elif child.tag == 'paraphrase':
                 paraphrase = child
-                warn_attribs(synloc, paraphrase, [])
+                warn_attribs(synloc, paraphrase, set())
                 paraphrase_text = unicode(paraphrase.text)
                 if not paraphrase_text:
                     print synloc, 'WARNING: <paraphrase> tag with no text'
