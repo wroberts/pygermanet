@@ -186,6 +186,22 @@ class Synset(object):
         '''
         return sorted(set([path[0] for path in self.hypernym_paths]))
 
+    @property
+    def max_depth(self):
+        '''
+        The length of the longest hypernym path from this synset to
+        the root.
+        '''
+        return max([len(path) for path in self.hypernym_paths])
+
+    @property
+    def min_depth(self):
+        '''
+        The length of the shortest hypernym path from this synset to
+        the root.
+        '''
+        return min([len(path) for path in self.hypernym_paths])
+
     def __repr__(self):
         return u'Synset({0}.{1}.{2})'.format(
             self.lemmas[0].orthForm,
