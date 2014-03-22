@@ -208,6 +208,9 @@ class Synset(object):
             self.pos,
             self.lemmas[0].sense).encode('utf-8')
 
+    def __hash__(self):
+        return hash(self._id)
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self._id == other._id
@@ -290,6 +293,9 @@ class Lemma(object):
             self.synset.pos,
             self.synset.lemmas[0].sense,
             self.orthForm).encode('utf-8')
+
+    def __hash__(self):
+        return hash(self._id)
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
