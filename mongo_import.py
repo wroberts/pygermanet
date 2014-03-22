@@ -10,6 +10,7 @@ A script to import the GermaNet lexicon into a MongoDB database.
 
 from pymongo import DESCENDING, MongoClient
 import glob
+import gzip
 import optparse
 import os
 import re
@@ -506,6 +507,29 @@ def insert_paraphrase_information(germanet_db, wiktionary_files):
 
     print 'Inserted {0} wiktionary paraphrases.'.format(num_paraphrases)
 
+def insert_lemmatisation_data(germanet_db):
+    '''
+    Creates the lemmatiser collection in the given MongoDB instance
+    using the data derived from the Projekt deutscher Wortschatz.
+
+    Arguments:
+    - `germanet_db`: a pymongo.database.Database object
+    '''
+    # drop the database collection if it already exists
+    germanet_db.lemmatiser.drop()
+    num_lemmas = 0
+    input_file = gzip.open('baseforms_by_projekt_deutscher_wortschatz.txt.gz')
+    for line in input_file:
+        line = line.decode('iso-8859-1').strip().split('\t')
+        assert len(line) == 2
+        germanet_db.lemmatiser.insert(dict(zip(('word', 'lemma'), line)))
+        num_lemmas += 1
+    input_file.close()
+    # index the collection on 'word'
+    germanet_db.lemmatiser.create_index('word')
+
+    print 'Inserted {0} lemmatiser entries.'.format(num_lemmas)
+
 
 # ------------------------------------------------------------
 #  Main function
@@ -544,6 +568,7 @@ def main():
     insert_lexical_information(germanet_db, lex_files)
     insert_relation_information(germanet_db, gn_rels_file)
     insert_paraphrase_information(germanet_db, wiktionary_files)
+    insert_lemmatisation_data(germanet_db)
 
     client.close()
 
