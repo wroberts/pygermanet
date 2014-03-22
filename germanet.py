@@ -8,7 +8,7 @@ germanet.py
 GermaNet interface.
 '''
 
-from pymongo import DESCENDING, MongoClient
+from pymongo import MongoClient
 import functools
 
 LONG_POS_TO_SHORT = {
@@ -86,11 +86,25 @@ class GermaNet(object):
             return Lemma(self, lemma_dict).synset
 
     def get_synset_by_id(self, mongo_id):
+        '''
+        Builds a Synset object from the database entry with the given
+        ObjectId.
+
+        Arguments:
+        - `mongo_id`: a bson.objectid.ObjectId object
+        '''
         synset_dict = self._mongo_db.synsets.find_one({'_id': mongo_id})
         if synset_dict is not None:
             return Synset(self, synset_dict)
 
     def get_lemma_by_id(self, mongo_id):
+        '''
+        Builds a Lemma object from the database entry with the given
+        ObjectId.
+
+        Arguments:
+        - `mongo_id`: a bson.objectid.ObjectId object
+        '''
         lemma_dict = self._mongo_db.lexunits.find_one({'_id': mongo_id})
         if lemma_dict is not None:
             return Lemma(self, lemma_dict)
@@ -106,7 +120,7 @@ class GermaNet(object):
         >>> gn.lemmatise(u'XYZ123')
         [u'XYZ123']
         '''
-        lemmas = list(germanet_db.lemmatiser.find({'word': word}))
+        lemmas = list(self._mongo_db.lemmatiser.find({'word': word}))
         if lemmas:
             return [lemma['lemma'] for lemma in lemmas]
         else:
@@ -138,21 +152,43 @@ class Synset(object):
         self.gn_class     = None
         self.id           = None
         self._lexunits    = None
-        self.__dict__.update((SYNSET_MEMBER_REWRITES.get(k, k), v) for (k, v) in db_dict.iteritems())
+        self.__dict__.update((SYNSET_MEMBER_REWRITES.get(k, k), v)
+                             for (k, v) in db_dict.iteritems())
 
     @property
     def lemmas(self):
-        return [self._germanet.get_lemma_by_id(lemma) for lemma in self._lexunits]
+        '''
+        Returns the list of Lemma objects contained in this Synset.
+        '''
+        return [self._germanet.get_lemma_by_id(lemma)
+                for lemma in self._lexunits]
 
     @property
     def pos(self):
+        '''
+        Returns the part of speech of this Synset as a single
+        character.  Nouns are represented by 'n', verbs by 'v', and
+        adjectives by 'j'.
+        '''
         return LONG_POS_TO_SHORT[self.category]
 
     def rels(self, rel_name = None):
+        '''
+        Returns a list of lexical relations in this Synset.  If
+        `rel_name` is specified, returns a list of Synsets which are
+        reachable from this one by relations with the given name.  If
+        `rel_name` is not specified, returns a list of all the lexical
+        relations of this Synset, as tuples of (rel_name, synset).
+
+        Arguments:
+        - `rel_name`:
+        '''
         if rel_name is not None:
-            return [self._germanet.get_synset_by_id(mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+            return [self._germanet.get_synset_by_id(mongo_id)
+                    for (name, mongo_id) in self._rels if name == rel_name]
         else:
-            return [(name, self._germanet.get_synset_by_id(mongo_id)) for (name, mongo_id) in self._rels]
+            return [(name, self._germanet.get_synset_by_id(mongo_id))
+                    for (name, mongo_id) in self._rels]
 
     @property
     def causes(self):             return self.rels('causes')
@@ -191,7 +227,9 @@ class Synset(object):
         '''
         hypernyms = self.hypernyms
         if hypernyms:
-            return reduce(list.__add__, [[path + [self] for path in hypernym.hypernym_paths] for hypernym in hypernyms], [])
+            return reduce(list.__add__, [[path + [self]
+                                          for path in hypernym.hypernym_paths]
+                                         for hypernym in hypernyms], [])
         else:
             return [[self]]
 
@@ -240,7 +278,8 @@ class Synset(object):
     def __lt__(self, other):
         if isinstance(other, self.__class__):
             return ((self.lemmas[0].orthForm, self.pos, self.lemmas[0].sense) <
-                    (other.lemmas[0].orthForm, other.pos, other.lemmas[0].sense))
+                    (other.lemmas[0].orthForm, other.pos,
+                     other.lemmas[0].sense))
         else:
             return False
 
@@ -281,21 +320,40 @@ class Lemma(object):
         self.source       = None
         self.styleMarking = None
         self._synset      = None
-        self.__dict__.update((LEMMA_MEMBER_REWRITES.get(k, k), v) for (k, v) in db_dict.iteritems())
+        self.__dict__.update((LEMMA_MEMBER_REWRITES.get(k, k), v)
+                             for (k, v) in db_dict.iteritems())
 
     @property
     def synset(self):
+        '''Returns the Synset that this Lemma is contained in.'''
         return self._germanet.get_synset_by_id(self._synset)
 
     @property
     def pos(self):
+        '''
+        Returns the part of speech of this Lemma as a single
+        character.  Nouns are represented by 'n', verbs by 'v', and
+        adjectives by 'j'.
+        '''
         return LONG_POS_TO_SHORT[self.category]
 
     def rels(self, rel_name = None):
+        '''
+        Returns a list of lexical relations in this Lemma.  If
+        `rel_name` is specified, returns a list of Lemmas which are
+        reachable from this one by relations with the given name.  If
+        `rel_name` is not specified, returns a list of all the lexical
+        relations of this Lemma, as tuples of (rel_name, lemma).
+
+        Arguments:
+        - `rel_name`:
+        '''
         if rel_name is not None:
-            return [self._germanet.get_lemma_by_id(mongo_id) for (name, mongo_id) in self._rels if name == rel_name]
+            return [self._germanet.get_lemma_by_id(mongo_id)
+                    for (name, mongo_id) in self._rels if name == rel_name]
         else:
-            return [(name, self._germanet.get_lemma_by_id(mongo_id)) for (name, mongo_id) in self._rels]
+            return [(name, self._germanet.get_lemma_by_id(mongo_id))
+                    for (name, mongo_id) in self._rels]
 
     @property
     def antonyms(self):    return self.rels('has_antonym')
@@ -345,28 +403,5 @@ def load_germanet(host = None, port = None, database_name = 'germanet'):
     return GermaNet(germanet_db)
 
 gn     = load_germanet()
-synset = Synset(gn, germanet_db.synsets.find_one({'category':'nomen'}))
-lemma  = Lemma(gn, germanet_db.lexunits.find_one())
-
-#import utils
-#a = utils.reduce_sets_or(x.keys() for x in germanet_db.lexunits.find())
-
-# zero hits
-#[x for x in germanet_db.lexunits.find() if 'orthForm' not in x['forms']]
-#[x for x in germanet_db.lexunits.find() if len(x['forms']['orthForm']) != 1]
-#[x for x in germanet_db.lexunits.find() if 'orthVar' in x['forms'] and len(x['forms']['orthVar']) != 1]
-#[x for x in germanet_db.lexunits.find() if 'oldOrthForm' in x['forms'] and len(x['forms']['oldOrthForm']) != 1]
-#[x for x in germanet_db.lexunits.find() if 'oldOrthVar' in x['forms'] and len(x['forms']['oldOrthVar']) != 1]
-#[x for x in germanet_db.lexunits.find() if 'styleMarking' in x and x['styleMarking'] not in MAP_YESNO_TO_BOOL]
-#[x for x in germanet_db.lexunits.find() if 'artificial' in x and x['artificial'] not in MAP_YESNO_TO_BOOL]
-#[x for x in germanet_db.lexunits.find() if 'namedEntity' in x and x['namedEntity'] not in MAP_YESNO_TO_BOOL]
-#[x for x in germanet_db.lexunits.find() if 'sense' in x and not x['sense'].isdigit()]
-
-#utils.reduce_sets_or([[y[0] for y in x['rels']] for x in germanet_db.lexunits.find() if 'rels' in x])
-# set([u'has_participle', u'has_pertainym', u'has_antonym'])
-#>>> utils.reduce_sets_or([[y[0] for y in x['rels']] for x in germanet_db.synsets.find() if 'rels' in x])
-#set([u'is_related_to', u'is_entailed_by', u'has_component_holonym', u'has_hypernym', u'has_portion_meronym', u'has_portion_holonym', u'has_substance_holonym', u'has_hyponym', u'has_member_holonym', u'causes', u'has_member_meronym', u'has_component_meronym', u'entails', u'has_substance_meronym'])
-
-#[x for x in germanet_db.synsets.find() if 'rels' in x and len([y for y in x['rels'] if y[0] == 'has_hypernym']) > 1]
-
-#pprint(gn.synset('Husky.n.1').hypernym_paths)
+synset = Synset(gn, gn._mongo_db.synsets.find_one({'category':'nomen'}))
+lemma  = Lemma(gn, gn._mongo_db.lexunits.find_one())
