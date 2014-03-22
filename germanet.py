@@ -240,6 +240,7 @@ class Lemma(object):
         self.oldOrthVar   = None
         self.orthForm     = None
         self.orthVar      = None
+        self.paraphrases  = []
         self.sense        = None
         self.source       = None
         self.styleMarking = None

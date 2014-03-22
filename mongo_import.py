@@ -319,6 +319,53 @@ def read_relation_file(filename):
 
 
 # ------------------------------------------------------------
+#  Read wiktionary paraphrase file
+# ------------------------------------------------------------
+
+PARAPHRASE_ATTRIBS = set(['edited', 'lexUnitId', 'wiktionaryId',
+                          'wiktionarySense', 'wiktionarySenseId'])
+
+def read_paraphrase_file(filename):
+    '''
+    Reads in a GermaNet wiktionary paraphrase file and returns its
+    contents as a list of dictionary structures.
+
+    Arguments:
+    - `filename`:
+    '''
+    with open(filename) as input_file:
+        doc = etree.parse(input_file)
+
+    assert doc.getroot().tag == 'wiktionaryParaphrases'
+    paraphrases = []
+    for child in doc.getroot():
+        if child.tag == 'wiktionaryParaphrase':
+            paraphrase = child
+            warn_attribs('', paraphrase, PARAPHRASE_ATTRIBS)
+            if 0 < len(paraphrase):
+                print 'unrecognized child of <wiktionaryParaphrase>', \
+                    list(paraphrase)
+            paraphrase_dict = dict(paraphrase.items())
+            if paraphrase_dict['edited'] not in MAP_YESNO_TO_BOOL:
+                print '<paraphrase> attribute "edited" has unexpected value', \
+                    paraphrase_dict['edited']
+            else:
+                paraphrase_dict['edited'] = MAP_YESNO_TO_BOOL[
+                    paraphrase_dict['edited']]
+            if not paraphrase_dict['wiktionarySenseId'].isdigit():
+                print ('<paraphrase> attribute "wiktionarySenseId" has '
+                       'non-integer value'), paraphrase_dict['edited']
+            else:
+                paraphrase_dict['wiktionarySenseId'] = \
+                    int(paraphrase_dict['wiktionarySenseId'], 10)
+            paraphrases.append(paraphrase_dict)
+        else:
+            print 'unknown child of <wiktionaryParaphrases>', child
+
+    return paraphrases
+
+
+# ------------------------------------------------------------
 #  Mongo insertion
 # ------------------------------------------------------------
 
@@ -428,6 +475,35 @@ def insert_relation_information(germanet_db, gn_rels_file):
     print 'Inserted {0} lexical relations, {1} synset relations.'.format(
         len(lex_rels), len(con_rels))
 
+def insert_paraphrase_information(germanet_db, wiktionary_files):
+    '''
+    Reads in the given GermaNet relation file and inserts its contents
+    into the given MongoDB database.
+
+    Arguments:
+    - `germanet_db`: a pymongo.database.Database object
+    - `wiktionary_files`:
+    '''
+    num_paraphrases = 0
+    # cache the lexunits while we work on them
+    lexunits = {}
+    for filename in wiktionary_files:
+        paraphrases = read_paraphrase_file(filename)
+        num_paraphrases += len(paraphrases)
+        for paraphrase in paraphrases:
+            if paraphrase['lexUnitId'] not in lexunits:
+                lexunits[paraphrase['lexUnitId']] = \
+                    germanet_db.lexunits.find_one(
+                    {'id': paraphrase['lexUnitId']})
+            lexunit = lexunits[paraphrase['lexUnitId']]
+            if 'paraphrases' not in lexunit:
+                lexunit['paraphrases'] = []
+            lexunit['paraphrases'].append(paraphrase)
+    for lexunit in lexunits.values():
+        germanet_db.lexunits.save(lexunit)
+
+    print 'Inserted {0} wiktionary paraphrases.'.format(num_paraphrases)
+
 
 # ------------------------------------------------------------
 #  Debug
@@ -444,3 +520,4 @@ if 0:
 
     insert_lexical_information(germanet_db, lex_files)
     insert_relation_information(germanet_db, gn_rels_file)
+    insert_paraphrase_information(germanet_db, wiktionary_files)
