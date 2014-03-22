@@ -155,3 +155,19 @@ Example setup::
 
     sudpo apt-get install mongodb
     sudo pip install pymongo repoze.lru
+
+Setup
+-----
+
+1. Start a MongoDB instance running.  For example, the
+   =start_mongo.sh= script contains::
+
+       mkdir -p ./mongodb
+       mongod --dbpath ./mongodb
+
+2. Import GermaNet into the MongoDB instance.  The =mongo_import.py=
+   script needs the path to the directory that contains the GermaNet
+   XML files::
+
+       ./mongo_import.py ~/corpora/germanet/GN_V80/GN_V80_XML/
+
