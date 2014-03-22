@@ -1,3 +1,35 @@
+============
+ pygermanet
+============
+
+GermaNet_ is the German WordNet_, a machine-readable lexical semantic
+resource which lists nouns, verbs and adjectives in German, along with
+lexical relations which connect these words together into a network.
+
+.. _GermaNet: http://www.sfs.uni-tuebingen.de/GermaNet/
+.. _WordNet: http://wordnet.princeton.edu/
+
+The NLTK_ project had API once upon a time for interacting with
+GermaNet, but this has now been removed from the current NLTK
+distribution.  This API was called GermaNLTK_ and was described in
+some detail in `NLTK Issue 604`_.  This GermaNet API shamelessly
+imitates the interface of the older NLTK code.
+
+.. _NLTK:           http://www.nltk.org/
+.. _GermaNLTK:      https://docs.google.com/document/d/1rdn0hOnJNcOBWEZgipdDfSyjJdnv_sinuAUSDSpiQns/edit?hl=en
+.. _NLTK Issue 604: https://code.google.com/p/nltk/issues/detail?id=604
+
+GermaNet is distributed as a set of XML files, or as a PostgreSQL
+database dump, neither of which is a convenient format for handling
+from inside Python.  The GermaNLTK project had a script to push the
+content of the XML files into a sqlite database; I haven't tested this
+code myself, and the GermaNet database has changed over the years
+since GermaNLTK was written.
+
+
+Introduction
+------------
+
 You can search GermaNet for synsets containing a particular word using
 the =synsets= function::
 
@@ -106,3 +138,20 @@ objects belonging to different =Synset= objects::
      Lemma(destillieren.v.1.brennen),
      Lemma(brennen.v.7.brennen),
      Lemma(brennen.v.8.brennen)]
+
+Requirements
+------------
+
+- Python 2.7
+- MongoDB_
+- pymongo_
+- `repoze.lru`_
+
+.. _MongoDB:    https://www.mongodb.org/
+.. _pymongo:    http://api.mongodb.org/python/current/
+.. _repoze.lru: https://pypi.python.org/pypi/repoze.lru/
+
+Example setup::
+
+    sudpo apt-get install mongodb
+    sudo pip install pymongo repoze.lru
