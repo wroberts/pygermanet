@@ -20,13 +20,13 @@ Introduction
 
 Start GermaNet by connecting to the MongoDB_ database which contains
 the lexical information.  On the local machine using the default port,
-this is as simple as:
+this is as simple as::
 
     >>> from germanet import load_germanet
     >>> gn = load_germanet()
 
 You can search GermaNet for synsets containing a particular lemmatised
-word form using the =synsets= function::
+word form using the ``synsets`` function::
 
     >>> gn.synsets('gehen')
     [Synset(auseinandergehen.v.3),
@@ -55,8 +55,8 @@ words using data derived from the `Projekt deutscher Wortschatz`_::
 
 .. _Projekt deutscher Wortschatz: http://wortschatz.uni-leipzig.de/
 
-Each =Synset= is represented by the orthographic form, part of speech,
-and sense number of its first =Lemma=; this acts as a unique
+Each ``Synset`` is represented by the orthographic form, part of speech,
+and sense number of its first ``Lemma``; this acts as a unique
 identifier for synsets.  If you know this identifier, you can also
 look up a synset in GermaNet::
 
@@ -64,7 +64,7 @@ look up a synset in GermaNet::
     >>> funktionieren
     Synset(funktionieren.v.2)
 
-=Synset= objects have data members and methods::
+``Synset`` objects have data members and methods::
 
     >>> funktionieren.hyponyms
     [Synset(vorgehen.v.1), Synset(leerlaufen.v.2)]
@@ -122,7 +122,7 @@ look up a synset in GermaNet::
       Synset(Hund.n.2),
       Synset(Husky.n.1)]]
 
-Each =Synset= contains one or more =Lemma= objects::
+Each ``Synset`` contains one or more ``Lemma`` objects::
 
     >>> funktionieren.lemmas
     [Lemma(funktionieren.v.2.funktionieren),
@@ -131,8 +131,8 @@ Each =Synset= contains one or more =Lemma= objects::
      Lemma(funktionieren.v.2.laufen),
      Lemma(funktionieren.v.2.arbeiten)]
 
-A given orthographic form may be represented by multiple =Lemma=
-objects belonging to different =Synset= objects::
+A given orthographic form may be represented by multiple ``Lemma``
+objects belonging to different ``Synset`` objects::
 
     >>> gn.lemmas('brennen')
     [Lemma(brennen.v.1.brennen),
@@ -172,12 +172,12 @@ handling the data to a MongoDB database.  As such, setup happens in
 two steps.
 
 1. Start a MongoDB instance running.  For example, the
-   =start_mongo.sh= script contains::
+   ``start_mongo.sh`` script contains::
 
        mkdir -p ./mongodb
        mongod --dbpath ./mongodb
 
-2. Import GermaNet into the MongoDB instance.  The =mongo_import.py=
+2. Import GermaNet into the MongoDB instance.  The ``mongo_import.py``
    script needs the path to the directory that contains the GermaNet
    XML files::
 
@@ -198,7 +198,7 @@ License
 
 This README file and the source code in this library are licensed
 under the MIT License (see source file LICENSE.txt for details).  The
-file =baseforms_by_projekt_deutscher_wortschatz.txt.gz= contains data
+file ``baseforms_by_projekt_deutscher_wortschatz.txt.gz`` contains data
 derived from the `Projekt deutscher Wortschatz`_; I cannot comment on
 the licensing status of this data.
 
@@ -218,6 +218,6 @@ interface of the older NLTK code.
 The GermaNLTK project had a script to push the content of the XML
 files into a sqlite database; I haven't tested this code myself, and
 the GermaNet database has changed over the years since GermaNLTK was
-written.  This =mongo_import.py= script in this library does much the
+written.  This ``mongo_import.py`` script included in this library does much the
 same thing, and could easily be adapted to use sqlite as a backend
 instead of MongoDB.
