@@ -205,11 +205,11 @@ the licensing status of this data.
 History
 -------
 
-The NLTK_ project had API once upon a time for interacting with
+The NLTK_ project had an API once upon a time for interacting with
 GermaNet, but this has now been removed from the current NLTK
 distribution.  This API was called GermaNLTK_ and was described in
 some detail in `NLTK Issue 604`_.  pygermanet shamelessly imitates the
-interface of the older NLTK code.
+interface of this older NLTK code.
 
 .. _NLTK:           http://www.nltk.org/
 .. _GermaNLTK:      https://docs.google.com/document/d/1rdn0hOnJNcOBWEZgipdDfSyjJdnv_sinuAUSDSpiQns/edit?hl=en
