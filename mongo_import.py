@@ -75,7 +75,7 @@ def find_germanet_xml_files(xml_path):
         print 'WARNING: cannot find interlingual index file'
 
     if xml_files:
-        print 'WARNING: unrecognized xml files:', xml_files
+        print 'WARNING: unrecognised xml files:', xml_files
 
     return lex_files, gn_rels_file, wiktionary_files, ili_files
 
@@ -214,7 +214,7 @@ def read_lexical_file(filename):
                         frame = child
                         warn_attribs(lexloc, frame, set())
                         if 0 < len(frame):
-                            print lexloc, 'unrecognized <frame> children', \
+                            print lexloc, 'unrecognised <frame> children', \
                                 list(frame)
                         if not frame.text:
                             print lexloc, '<frame> without text'
@@ -308,7 +308,7 @@ def read_relation_file(filename):
             child_dict = dict(child.items())
             warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in CON_REL_DIRS:
-                print 'unrecognized <con_rel> dir', child_dict['dir']
+                print 'unrecognised <con_rel> dir', child_dict['dir']
             if (child_dict['dir'] in ['both', 'revert'] and
                 'inv' not in child_dict):
                 print '<con_rel> has dir={0} but does not specify inv'.format(
@@ -346,7 +346,7 @@ def read_paraphrase_file(filename):
             paraphrase = child
             warn_attribs('', paraphrase, PARAPHRASE_ATTRIBS)
             if 0 < len(paraphrase):
-                print 'unrecognized child of <wiktionaryParaphrase>', \
+                print 'unrecognised child of <wiktionaryParaphrase>', \
                     list(paraphrase)
             paraphrase_dict = dict(paraphrase.items())
             if paraphrase_dict['edited'] not in MAP_YESNO_TO_BOOL:
