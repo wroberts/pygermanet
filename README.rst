@@ -2,36 +2,31 @@
  pygermanet
 ============
 
+GermaNet API for Python.
+
+Copyright (c) 23 March, 2014 Will Roberts <wildwilhelm@gmail.com>.
+
 GermaNet_ is the German WordNet_, a machine-readable lexical semantic
 resource which lists nouns, verbs and adjectives in German, along with
-lexical relations which connect these words together into a network.
+lexical relations which connect these words together into a semantic
+network.  This library gives a Python interface to this resource.
 
 .. _GermaNet: http://www.sfs.uni-tuebingen.de/GermaNet/
 .. _WordNet: http://wordnet.princeton.edu/
-
-The NLTK_ project had API once upon a time for interacting with
-GermaNet, but this has now been removed from the current NLTK
-distribution.  This API was called GermaNLTK_ and was described in
-some detail in `NLTK Issue 604`_.  This GermaNet API shamelessly
-imitates the interface of the older NLTK code.
-
-.. _NLTK:           http://www.nltk.org/
-.. _GermaNLTK:      https://docs.google.com/document/d/1rdn0hOnJNcOBWEZgipdDfSyjJdnv_sinuAUSDSpiQns/edit?hl=en
-.. _NLTK Issue 604: https://code.google.com/p/nltk/issues/detail?id=604
-
-GermaNet is distributed as a set of XML files, or as a PostgreSQL
-database dump, neither of which is a convenient format for handling
-from inside Python.  The GermaNLTK project had a script to push the
-content of the XML files into a sqlite database; I haven't tested this
-code myself, and the GermaNet database has changed over the years
-since GermaNLTK was written.
 
 
 Introduction
 ------------
 
-You can search GermaNet for synsets containing a particular word using
-the =synsets= function::
+Start GermaNet by connecting to the MongoDB_ database which contains
+the lexical information.  On the local machine using the default port,
+this is as simple as:
+
+    >>> from germanet import load_germanet
+    >>> gn = load_germanet()
+
+You can search GermaNet for synsets containing a particular lemmatised
+word form using the =synsets= function::
 
     >>> gn.synsets('gehen')
     [Synset(auseinandergehen.v.3),
@@ -49,6 +44,16 @@ the =synsets= function::
      Synset(gehen.v.13),
      Synset(gehen.v.14),
      Synset(handeln.v.1)]
+
+To look up synsets, you must have the canonical form of the word as it
+would appear in a dictionary (head word); this module calls this word
+form the lemma.  The GermaNet instance can perform lemmatisation of
+words using data derived from the `Projekt deutscher Wortschatz`_::
+
+    >>> gn.lemmatise(u'ginge')
+    [u'gehen']
+
+.. _Projekt deutscher Wortschatz: http://wortschatz.uni-leipzig.de/
 
 Each =Synset= is represented by the orthographic form, part of speech,
 and sense number of its first =Lemma=; this acts as a unique
@@ -145,7 +150,7 @@ Requirements
 - Python 2.7
 - MongoDB_
 - pymongo_
-- `repoze.lru`_
+- `repoze.lru`_ (optional)
 
 .. _MongoDB:    https://www.mongodb.org/
 .. _pymongo:    http://api.mongodb.org/python/current/
@@ -159,6 +164,12 @@ Example setup::
 Setup
 -----
 
+GermaNet is distributed as a set of XML files, or as a PostgreSQL
+database dump, neither of which is a convenient format for handling
+from inside Python.  This library delegates responsibility for
+handling the data to a MongoDB database.  As such, setup happens in
+two steps.
+
 1. Start a MongoDB instance running.  For example, the
    =start_mongo.sh= script contains::
 
@@ -171,3 +182,41 @@ Setup
 
        ./mongo_import.py ~/corpora/germanet/GN_V80/GN_V80_XML/
 
+   This step only needs to be performed once, before you use
+   pygermanet for the first time.
+
+3. pygermanet can now be used by connecting to the running MongoDB
+   instance.  Using default settings and connecting to a database on
+   the local machine, this is accomplished with::
+
+       >>> from germanet import load_germanet
+       >>> gn = load_germanet()
+
+License
+-------
+
+This README file and the source code in this library are licensed
+under the MIT License (see source file LICENSE.txt for details).  The
+file =baseforms_by_projekt_deutscher_wortschatz.txt.gz= contains data
+derived from the `Projekt deutscher Wortschatz`_; I cannot comment on
+the licensing status of this data.
+
+History
+-------
+
+The NLTK_ project had API once upon a time for interacting with
+GermaNet, but this has now been removed from the current NLTK
+distribution.  This API was called GermaNLTK_ and was described in
+some detail in `NLTK Issue 604`_.  pygermanet shamelessly imitates the
+interface of the older NLTK code.
+
+.. _NLTK:           http://www.nltk.org/
+.. _GermaNLTK:      https://docs.google.com/document/d/1rdn0hOnJNcOBWEZgipdDfSyjJdnv_sinuAUSDSpiQns/edit?hl=en
+.. _NLTK Issue 604: https://code.google.com/p/nltk/issues/detail?id=604
+
+The GermaNLTK project had a script to push the content of the XML
+files into a sqlite database; I haven't tested this code myself, and
+the GermaNet database has changed over the years since GermaNLTK was
+written.  This =mongo_import.py= script in this library does much the
+same thing, and could easily be adapted to use sqlite as a backend
+instead of MongoDB.
