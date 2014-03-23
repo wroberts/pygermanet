@@ -22,7 +22,7 @@ Start GermaNet by connecting to the MongoDB_ database which contains
 the lexical information.  On the local machine using the default port,
 this is as simple as::
 
-    >>> from germanet import load_germanet
+    >>> from pygermanet.germanet import load_germanet
     >>> gn = load_germanet()
 
 You can search GermaNet for synsets containing a particular lemmatised
@@ -190,7 +190,7 @@ two steps.
    instance.  Using default settings and connecting to a database on
    the local machine, this is accomplished with::
 
-       >>> from germanet import load_germanet
+       >>> from pygermanet.germanet import load_germanet
        >>> gn = load_germanet()
 
 License
