@@ -92,7 +92,8 @@ class GermaNet(object):
         - `lemma`:
         - `pos`:
         '''
-        return sorted(set(lemma.synset for lemma in self.lemmas(lemma, pos)))
+        return sorted(set(lemma_obj.synset
+                          for lemma_obj in self.lemmas(lemma, pos)))
 
     def synset(self, synset_repr):
         '''
@@ -451,7 +452,3 @@ def load_germanet(host = None, port = None, database_name = 'germanet'):
     client      = MongoClient(host, port)
     germanet_db = client[database_name]
     return GermaNet(germanet_db)
-
-gn     = load_germanet()
-synset = Synset(gn, gn._mongo_db.synsets.find_one({'category':'nomen'}))
-lemma  = Lemma(gn, gn._mongo_db.lexunits.find_one())
