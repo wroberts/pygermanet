@@ -147,6 +147,7 @@ objects belonging to different =Synset= objects::
 Requirements
 ------------
 
+- The GermaNet_ resource (available from the University of Tübingen)
 - Python 2.7
 - MongoDB_
 - pymongo_
