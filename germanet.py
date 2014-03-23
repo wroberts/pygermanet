@@ -10,6 +10,10 @@ GermaNet interface.
 
 from pymongo import MongoClient
 import functools
+try:
+    import repoze.lru
+except ImportError:
+    pass
 
 LONG_POS_TO_SHORT = {
     'verben': 'v',
@@ -17,12 +21,14 @@ LONG_POS_TO_SHORT = {
     'adj':    'j',
     }
 
-SHORT_POS_TO_LONG = dict((v, k) for (k, v) in LONG_POS_TO_SHORT.items())
+SHORT_POS_TO_LONG  = dict((v, k) for (k, v) in LONG_POS_TO_SHORT.items())
+
+DEFAULT_CACHE_SIZE = 100
 
 class GermaNet(object):
     '''A class representing the GermaNet database.'''
 
-    def __init__(self, mongo_db):
+    def __init__(self, mongo_db, cache_size = DEFAULT_CACHE_SIZE):
         '''
         Creates a new GermaNet object.
 
@@ -30,7 +36,35 @@ class GermaNet(object):
         - `mongo_db`: a pymongo.database.Database object containing
           the GermaNet lexicon
         '''
-        self._mongo_db = mongo_db
+        self._mongo_db     = mongo_db
+        self._lemma_cache  = None
+        self._synset_cache = None
+        try:
+            self._lemma_cache  = repoze.lru.LRUCache(cache_size)
+            self._synset_cache = repoze.lru.LRUCache(cache_size)
+        except NameError:
+            pass
+
+    @property
+    def cache_size(self):
+        '''
+        Return the current cache size used to reduce the number of
+        database access operations.
+        '''
+        if self._lemma_cache is not None:
+            return self._lemma_cache.size
+        return 0
+
+    @cache_size.setter
+    def set_cache_size(self, new_value):
+        '''
+        Set the cache size used to reduce the number of database
+        access operations.
+        '''
+        if type(new_value) == int and 0 < new_value:
+            if self._lemma_cache is not None:
+                self._lemma_cache  = repoze.lru.LRUCache(new_value)
+                self._synset_cache = repoze.lru.LRUCache(new_value)
 
     def lemmas(self, lemma, pos = None):
         '''
@@ -93,9 +127,17 @@ class GermaNet(object):
         Arguments:
         - `mongo_id`: a bson.objectid.ObjectId object
         '''
+        cache_hit = None
+        if self._synset_cache is not None:
+            cache_hit = self._synset_cache.get(mongo_id)
+        if cache_hit is not None:
+            return cache_hit
         synset_dict = self._mongo_db.synsets.find_one({'_id': mongo_id})
         if synset_dict is not None:
-            return Synset(self, synset_dict)
+            synset = Synset(self, synset_dict)
+            if self._synset_cache is not None:
+                self._synset_cache.put(mongo_id, synset)
+            return synset
 
     def get_lemma_by_id(self, mongo_id):
         '''
@@ -105,9 +147,17 @@ class GermaNet(object):
         Arguments:
         - `mongo_id`: a bson.objectid.ObjectId object
         '''
+        cache_hit = None
+        if self._lemma_cache is not None:
+            cache_hit = self._lemma_cache.get(mongo_id)
+        if cache_hit is not None:
+            return cache_hit
         lemma_dict = self._mongo_db.lexunits.find_one({'_id': mongo_id})
         if lemma_dict is not None:
-            return Lemma(self, lemma_dict)
+            lemma = Lemma(self, lemma_dict)
+            if self._lemma_cache is not None:
+                self._lemma_cache.put(mongo_id, lemma)
+            return lemma
 
     def lemmatise(self, word):
         '''
