@@ -18,6 +18,8 @@ network.  This library gives a Python interface to this resource.
 Introduction
 ------------
 
+(For setting up the MongoDB database, see the section `Setup`_, below)
+
 Start GermaNet by connecting to the MongoDB_ database which contains
 the lexical information.  On the local machine using the default port,
 this is as simple as::
