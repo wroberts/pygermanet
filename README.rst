@@ -197,10 +197,14 @@ License
 -------
 
 This README file and the source code in this library are licensed
-under the MIT License (see source file LICENSE.txt for details).  The
-file ``baseforms_by_projekt_deutscher_wortschatz.txt.gz`` contains data
-derived from the `Projekt deutscher Wortschatz`_; I cannot comment on
-the licensing status of this data.
+under the MIT License (see source file LICENSE.txt for details).
+
+The file ``baseforms_by_projekt_deutscher_wortschatz.txt.gz`` contains
+data derived from the `Projekt deutscher Wortschatz`_; this database
+is free for educational und researching purposes but not for
+commercial use. For more information visit:
+http://wortschatz.uni-leipzig.de/.
+
 
 History
 -------
