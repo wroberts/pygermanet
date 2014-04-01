@@ -57,9 +57,9 @@ def find_germanet_xml_files(xml_path):
         gn_rels_file = gn_rels_file[0]
 
     # sort out the wiktionary paraphrase files
-    wiktionary_files =  [xml_file for xml_file in xml_files if
-                         re.match(r'wiktionaryparaphrases-',
-                                  os.path.basename(xml_file).lower())]
+    wiktionary_files = [xml_file for xml_file in xml_files if
+                        re.match(r'wiktionaryparaphrases-',
+                                 os.path.basename(xml_file).lower())]
     xml_files = sorted(set(xml_files) - set(wiktionary_files))
 
     if not wiktionary_files:
@@ -87,7 +87,7 @@ def find_germanet_xml_files(xml_path):
 def warn_attribs(loc,
                  node,
                  recognised_attribs,
-                 reqd_attribs = None):
+                 reqd_attribs=None):
     '''
     Error checking of XML input: check that the given node has certain
     required attributes, and does not have any unrecognised
@@ -541,7 +541,7 @@ def main():
              'XML_PATH              the directory containing the '
              'GermaNet .xml files')
 
-    parser = optparse.OptionParser(usage = usage)
+    parser = optparse.OptionParser(usage=usage)
     parser.add_option('--host', default=None,
                       help='hostname or IP address of the MongoDB instance '
                       'where the GermaNet database will be inserted '
