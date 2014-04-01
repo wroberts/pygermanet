@@ -484,6 +484,40 @@ class Synset(object):
         # information content is the negative log
         return -math.log(least_prob)
 
+    def sim_jcn(self, other):
+        '''
+        Computes the Jiang-Conrath similarity score between this synset
+        and the synset ``other``.
+
+        Arguments:
+        - `other`:
+        '''
+        ic1 = self.infocont
+        ic2 = other.infocont
+        if ic1 == 0 or ic2 == 0:
+            return 0.
+        ic1 = -math.log(ic1)
+        ic2 = -math.log(ic2)
+        ic_lcs = self.sim_res(other)
+        return 1. / (ic1 + ic2 - 2. * ic_lcs)
+
+    def sim_lin(self, other):
+        '''
+        Computes the Lin similarity score between this synset and the
+        synset ``other``.
+
+        Arguments:
+        - `other`:
+        '''
+        ic1 = self.infocont
+        ic2 = other.infocont
+        if ic1 == 0 or ic2 == 0:
+            return 0.
+        ic1 = -math.log(ic1)
+        ic2 = -math.log(ic2)
+        ic_lcs = self.sim_res(other)
+        return 2. * ic_lcs / (ic1 + ic2)
+
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
     'synset': '_synset',
