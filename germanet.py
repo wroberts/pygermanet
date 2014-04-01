@@ -294,7 +294,7 @@ class Synset(object):
         retval = dict()
         for (synset, dist) in reduce(
                 set.union,
-                [[(synset, idx) for (idx, synset) in enumerate(path)]
+                [[(synset, idx) for (idx, synset) in enumerate(reversed(path))]
                  for path in self.hypernym_paths],
                 set()):
             if synset not in retval or dist < retval[synset]:
