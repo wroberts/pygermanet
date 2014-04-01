@@ -458,6 +458,32 @@ class Synset(object):
             path_length /
             (2. * (self._germanet.max_min_depths[self.category] - 1)))
 
+    def sim_res(self, other):
+        '''
+        Computes the Resnik similarity score between this synset and the
+        synset ``other``.
+
+        Arguments:
+        - `other`:
+        '''
+        if not isinstance(other, Synset):
+            return 0.
+        # find the lowest concept which subsumes both this synset and
+        # ``other``
+        common_hypers = self.lowest_common_hypernyms(other)
+        if not common_hypers:
+            return 0.
+        # infocont is actually the probability
+        infoconts = [synset.infocont for synset in common_hypers]
+        # filter out zero counts
+        infoconts = [x for x in infoconts if x != 0]
+        if not infoconts:
+            return 0.
+        # we take the lowest probability subsumer
+        least_prob = min(infoconts)
+        # information content is the negative log
+        return -math.log(least_prob)
+
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
     'synset': '_synset',
