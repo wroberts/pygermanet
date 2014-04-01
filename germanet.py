@@ -285,6 +285,22 @@ class Synset(object):
             return [[self]]
 
     @property
+    def hypernym_distances(self):
+        '''
+        Returns a list of synsets on the path from this synset to the root
+        node, counting the distance of each node on the way.
+        '''
+        retval = dict()
+        for (synset, dist) in reduce(
+                set.union,
+                [[(synset, idx) for (idx, synset) in enumerate(path)]
+                 for path in self.hypernym_paths],
+                set()):
+            if synset not in retval or dist < retval[synset]:
+                retval[synset] = dist
+        return set(retval.items())
+
+    @property
     def root_hypernyms(self):
         '''
         Get the topmost hypernym(s) of this synset in GermaNet.
@@ -333,6 +349,46 @@ class Synset(object):
                      other.lemmas[0].sense))
         else:
             return False
+
+    def _common_hypernyms(self, other):
+        '''Helper method for common_hypernyms.'''
+        if not isinstance(other, Synset):
+            return dict()
+        self_dists  = dict(self.hypernym_distances)
+        other_dists = dict(other.hypernym_distances)
+        common      = dict((synset, 0) for synset in (set(self_dists) &
+                                                      set(other_dists)))
+        # update the distance values
+        for synset in common:
+            common[synset] = self_dists[synset] + other_dists[synset]
+        return common
+
+    def common_hypernyms(self, other):
+        '''
+        Finds the set of hypernyms common to both this synset and
+        ``other``.
+
+        Arguments:
+        - `other`: another synset
+        '''
+        return set(synset for (synset, dist) in
+                   self._common_hypernyms(other).items())
+
+    def lowest_common_hypernyms(self, other):
+        '''
+        Finds the set of hypernyms common to both this synset and
+        ``other`` which are lowest in the GermaNet hierarchy.
+
+        Arguments:
+        - `other`: another synset
+        '''
+        common = self._common_hypernyms(other)
+        if not common:
+            return set()
+        lowest_dist = min(common.values())
+        return set(synset
+                   for (synset, dist) in common.iteritems()
+                   if dist == lowest_dist)
 
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
