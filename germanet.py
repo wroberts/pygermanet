@@ -202,6 +202,7 @@ class Synset(object):
         self.category     = None
         self.gn_class     = None
         self.id           = None
+        self.infocont     = 0.
         self._lexunits    = None
         self.__dict__.update((SYNSET_MEMBER_REWRITES.get(k, k), v)
                              for (k, v) in db_dict.iteritems())
