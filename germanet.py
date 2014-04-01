@@ -66,6 +66,13 @@ class GermaNet(object):
                 self._lemma_cache  = repoze.lru.LRUCache(new_value)
                 self._synset_cache = repoze.lru.LRUCache(new_value)
 
+    def all_lemmas(self):
+        '''
+        A generator over all the lemmas in the GermaNet database.
+        '''
+        for lemma_dict in self._mongo_db.lexunits.find():
+            yield Lemma(self, lemma_dict)
+
     def lemmas(self, lemma, pos = None):
         '''
         Looks up lemmas in the GermaNet database.
@@ -83,6 +90,13 @@ class GermaNet(object):
         else:
             lemma_dicts = self._mongo_db.lexunits.find({'orthForm': lemma})
         return sorted([Lemma(self, lemma_dict) for lemma_dict in lemma_dicts])
+
+    def all_synsets(self):
+        '''
+        A generator over all the synsets in the GermaNet database.
+        '''
+        for synset_dict in self._mongo_db.synsets.find():
+            yield Synset(self, synset_dict)
 
     def synsets(self, lemma, pos = None):
         '''
