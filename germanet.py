@@ -56,7 +56,7 @@ class GermaNet(object):
         return 0
 
     @cache_size.setter
-    def set_cache_size(self, new_value):
+    def cache_size(self, new_value):
         '''
         Set the cache size used to reduce the number of database
         access operations.
