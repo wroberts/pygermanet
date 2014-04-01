@@ -383,13 +383,18 @@ class Synset(object):
         Arguments:
         - `other`: another synset
         '''
-        common = self._common_hypernyms(other)
-        if not common:
+        self_hypers   = set(synset for path in self.hypernym_paths
+                            for synset in path)
+        other_hypers  = set(synset for path in other.hypernym_paths
+                            for synset in path)
+        common_hypers = self_hypers & other_hypers
+        common_hypers = [(synset.min_depth, synset)
+                         for synset in common_hypers]
+        if not common_hypers:
             return set()
-        lowest_dist = min(common.values())
-        return set(synset
-                   for (synset, dist) in common.iteritems()
-                   if dist == lowest_dist)
+        max_depth     = max(x[0] for x in common_hypers)
+        return set(synset for (depth, synset) in common_hypers
+                   if depth == max_depth)
 
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
