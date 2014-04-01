@@ -403,6 +403,8 @@ class Synset(object):
         Arguments:
         - `other`: another synset
         '''
+        if not isinstance(other, Synset):
+            return set()
         self_hypers   = set(synset for path in self.hypernym_paths
                             for synset in path)
         other_hypers  = set(synset for path in other.hypernym_paths
