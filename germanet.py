@@ -396,6 +396,22 @@ class Synset(object):
         return set(synset for (depth, synset) in common_hypers
                    if depth == max_depth)
 
+    def shortest_path_length(self, other):
+        '''
+        Returns the length of the shortest path linking this synset with
+        ``other`` via a common hypernym.  If no path exists, the
+        method returns None.
+
+        Arguments:
+        - `other`:
+        '''
+        if self == other:
+            return 0
+        common_hypers = self._common_hypernyms(other)
+        if not common_hypers:
+            return None
+        return min(common_hypers.values())
+
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
     'synset': '_synset',
