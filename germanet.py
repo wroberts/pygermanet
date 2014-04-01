@@ -10,6 +10,7 @@ GermaNet interface.
 
 from pymongo import MongoClient
 import functools
+import math
 try:
     import repoze.lru
 except ImportError:
@@ -433,6 +434,29 @@ class Synset(object):
         if not common_hypers:
             return None
         return min(common_hypers.values())
+
+    # --------------------------------------------------
+    #  Semantic similarity
+    # --------------------------------------------------
+
+    def sim_lch(self, other):
+        '''
+        Computes the Leacock-Chodorow similarity score between this synset
+        and the synset ``other``.
+
+        Arguments:
+        - `other`:
+        '''
+        if not isinstance(other, Synset):
+            return 0.
+        if self.category != other.category:
+            return 0.
+        path_length = self.shortest_path_length(other)
+        if path_length is None:
+            return 0.
+        return -math.log(
+            path_length /
+            (2. * (self._germanet.max_min_depths[self.category] - 1)))
 
 # rename some of the fields in the MongoDB dictionary
 LEMMA_MEMBER_REWRITES = {
