@@ -110,7 +110,7 @@ class GermaNet(object):
         if len(parts) != 3:
             return None
         lemma, pos, sensenum = parts
-        if (not sensenum.isdigit() or pos not in SHORT_POS_TO_LONG):
+        if not sensenum.isdigit() or pos not in SHORT_POS_TO_LONG:
             return None
         sensenum   = int(sensenum, 10)
         pos        = SHORT_POS_TO_LONG[pos]
