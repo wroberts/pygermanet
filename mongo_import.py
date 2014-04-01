@@ -8,7 +8,9 @@ mongo_import.py
 A script to import the GermaNet lexicon into a MongoDB database.
 '''
 
+from collections import defaultdict
 from pymongo import DESCENDING, MongoClient
+import germanet
 import glob
 import gzip
 import optparse
@@ -532,6 +534,63 @@ def insert_lemmatisation_data(germanet_db):
 
 
 # ------------------------------------------------------------
+#  Information content for GermaNet similarity
+# ------------------------------------------------------------
+
+WORD_COUNT_FILE      = 'sdewac-gn-words.tsv.gz'
+WORD_COUNT_STOPWORDS = {'in', 'aus', 'durch', 'Es', 'Ich'}
+
+# the total number of words in SDEWAC is 884,838,511
+SDEWAC_TOTAL_COUNT = 884838511
+
+def insert_infocontent_data(germanet_db):
+    '''
+    For every synset in GermaNet, inserts count information derived
+    from SDEWAC.
+
+    Arguments:
+    - `germanet_db`: a pymongo.database.Database object
+    '''
+    gnet           = germanet.GermaNet(germanet_db)
+    gn_counts      = defaultdict(float)
+    input_file     = gzip.open(WORD_COUNT_FILE)
+    num_lines_read = 0
+    num_lines      = 0
+    for line in input_file:
+        line       = line.strip().split('\t')
+        num_lines += 1
+        if len(line) != 2:
+            continue
+        count, word = line
+        if word in WORD_COUNT_STOPWORDS:
+            continue
+        num_lines_read += 1
+        count           = float(count)
+        synsets         = reduce(set.union, [gnet.synsets(x) for x in
+                                             gnet.lemmatise(word)], set())
+        if not synsets:
+            continue
+        count /= len(synsets)
+        for synset in synsets:
+            paths = synset.hypernym_paths
+            scount = count / len(paths)
+            for path in paths:
+                for ss in path:
+                    gn_counts[ss._id] += scount
+    print 'Read {0} of {1} lines from count file.'.format(num_lines_read,
+                                                          num_lines)
+    print 'Recorded counts for {0} synsets.'.format(len(gn_counts))
+    input_file.close()
+    # update all the synset records in GermaNet
+    num_updates = 0
+    for synset in germanet_db.synsets.find():
+        synset['infocont'] = gn_counts[synset['_id']] / SDEWAC_TOTAL_COUNT
+        germanet_db.synsets.save(synset)
+        num_updates += 1
+    print 'Updated {0} synsets.'.format(num_updates)
+
+
+# ------------------------------------------------------------
 #  Main function
 # ------------------------------------------------------------
 
@@ -569,6 +628,7 @@ def main():
     insert_relation_information(germanet_db, gn_rels_file)
     insert_paraphrase_information(germanet_db, wiktionary_files)
     insert_lemmatisation_data(germanet_db)
+    insert_infocontent_data(germanet_db)
 
     client.close()
 
