@@ -25,6 +25,8 @@ SHORT_POS_TO_LONG  = dict((v, k) for (k, v) in LONG_POS_TO_SHORT.items())
 
 DEFAULT_CACHE_SIZE = 100
 
+GERMANET_METAINFO_IGNORE_KEYS = set(['_id'])
+
 class GermaNet(object):
     '''A class representing the GermaNet database.'''
 
@@ -36,9 +38,13 @@ class GermaNet(object):
         - `mongo_db`: a pymongo.database.Database object containing
           the GermaNet lexicon
         '''
-        self._mongo_db     = mongo_db
-        self._lemma_cache  = None
-        self._synset_cache = None
+        self._mongo_db      = mongo_db
+        self._lemma_cache   = None
+        self._synset_cache  = None
+        self.max_min_depths = {}
+        self.__dict__.update((k, v) for (k, v)
+                             in self._mongo_db.metainfo.find_one().items()
+                             if k not in GERMANET_METAINFO_IGNORE_KEYS)
         try:
             self._lemma_cache  = repoze.lru.LRUCache(cache_size)
             self._synset_cache = repoze.lru.LRUCache(cache_size)
