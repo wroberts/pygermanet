@@ -571,7 +571,7 @@ def insert_infocontent_data(germanet_db):
         # Although Resnik (1995) suggests dividing count by the number
         # of synsets, Patwardhan et al (2003) argue against doing
         # this.
-        #count /= len(synsets)
+        count = float(count) / len(synsets)
         for synset in synsets:
             total_count += count
             paths = synset.hypernym_paths
