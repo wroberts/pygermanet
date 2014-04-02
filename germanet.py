@@ -455,8 +455,8 @@ class Synset(object):
         if path_length is None:
             return 0.
         return -math.log(
-            path_length /
-            (2. * (self._germanet.max_min_depths[self.category] - 1)))
+            (path_length + 1) /
+            (2. * self._germanet.max_min_depths[self.category]))
 
     def sim_res(self, other):
         '''
