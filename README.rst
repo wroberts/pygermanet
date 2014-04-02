@@ -161,7 +161,7 @@ Requirements
 
 Example setup::
 
-    sudpo apt-get install mongodb
+    sudo apt-get install mongodb
     sudo pip install pymongo repoze.lru
 
 Setup
