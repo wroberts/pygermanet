@@ -538,7 +538,6 @@ def insert_lemmatisation_data(germanet_db):
 # ------------------------------------------------------------
 
 WORD_COUNT_FILE      = 'sdewac-gn-words.tsv.gz'
-WORD_COUNT_STOPWORDS = {'in', 'aus', 'durch', 'Es', 'Ich'}
 
 def insert_infocontent_data(germanet_db):
     '''
@@ -557,15 +556,12 @@ def insert_infocontent_data(germanet_db):
     for line in input_file:
         line       = line.strip().split('\t')
         num_lines += 1
-        if len(line) != 2:
+        if len(line) != 3:
             continue
-        count, word = line
-        if word in WORD_COUNT_STOPWORDS:
-            continue
+        count, pos, word = line
         num_lines_read += 1
         count           = int(count)
-        synsets         = reduce(set.union, [gnet.synsets(x) for x in
-                                             gnet.lemmatise(word)], set())
+        synsets         = set(gnet.synsets(word, pos))
         if not synsets:
             continue
         # Although Resnik (1995) suggests dividing count by the number
