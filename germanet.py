@@ -501,19 +501,6 @@ class Synset(object):
         ic_lcs = self.sim_res(other)
         return 1. / (ic1 + ic2 - 2. * ic_lcs)
 
-    def sim_jcn(self, other):
-        '''
-        Computes the Jiang-Conrath similarity score between this synset
-        and the synset ``other``.
-
-        Arguments:
-        - `other`:
-        '''
-        dist = self.dist_jcn(other)
-        if dist == 0.:
-            return 0.
-        return 1. / dist
-
     def sim_lin(self, other):
         '''
         Computes the Lin similarity score between this synset and the
