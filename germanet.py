@@ -499,7 +499,7 @@ class Synset(object):
         ic1 = -math.log(ic1)
         ic2 = -math.log(ic2)
         ic_lcs = self.sim_res(other)
-        return 1. / (ic1 + ic2 - 2. * ic_lcs)
+        return ic1 + ic2 - 2. * ic_lcs
 
     def sim_lin(self, other):
         '''
