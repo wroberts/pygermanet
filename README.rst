@@ -18,11 +18,10 @@ network.  This library gives a Python interface to this resource.
 Introduction
 ------------
 
-(For setting up the MongoDB database, see the section `Setup`_, below)
-
 Start GermaNet by connecting to the MongoDB_ database which contains
-the lexical information.  On the local machine using the default port,
-this is as simple as::
+the lexical information (for setting up the MongoDB database, see the
+section `Setup`_, below).  On the local machine using the default
+port, this is as simple as::
 
     >>> from pygermanet.germanet import load_germanet
     >>> gn = load_germanet()
@@ -151,18 +150,18 @@ Semantic Similarity
 
 pygermanet includes several functions for calculating semantic
 similarity and semantic distance, somewhat like `WN::Similarity`_.
-These metrics use word frequency information estimated on the SdeWac_
+These metrics use word frequency information estimated on the SdeWaC_
 corpus and then automatically lemmatised using the TreeTagger_.  Using
 this interface, we can replicate the results of `(Gurevych, 2005)`_
 and `(Gurevych and Niederlich, 2005)`_, who collected human semantic
-similarity judgments on 65 word pairs and then measured the
-correlation of these judgments against similarity scores reported by
+similarity judgements on 65 word pairs and then measured the
+correlation of these judgements against similarity scores reported by
 various automatic similarity metrics.  These two papers reported
 Pearson's *r* of 0.715 for (Resnik, 1995), 0.738 for a normalised
 distance version of (Jiang and Conrath, 1997), and 0.734 for (Lin,
 1998), with inter-annotator agreement of 0.810.
 
-Replication of the two studies, using the gur65_ dataset::
+Replication of the two studies, using the gur65_ data set::
 
     from germanet import load_germanet, Synset
     from scipy.stats.stats import pearsonr
@@ -193,7 +192,7 @@ Replication of the two studies, using the gur65_ dataset::
     gur65 = load_gurevych()
     gn    = load_germanet()
 
-    # select those words which are found in GermeNet; exclude the
+    # select those words which are found in GermaNet; exclude the
     # adjective "jung"
     pred = lambda w1, w2: bool(gn.synsets(w1) and gn.synsets(w2) and
                                w1 != 'jung' and w2 != 'jung')
@@ -264,7 +263,7 @@ Setup
 -----
 
 GermaNet is distributed as a set of XML files, or as a PostgreSQL
-database dump, neither of which is a convenient format for handling
+database dump, neither of which is a convenient format to handle
 from inside Python.  This library delegates responsibility for
 handling the data to a MongoDB database.  As such, setup happens in
 two steps.
@@ -299,7 +298,7 @@ under the MIT License (see source file LICENSE.txt for details).
 
 The file ``baseforms_by_projekt_deutscher_wortschatz.txt.gz`` contains
 data derived from the `Projekt deutscher Wortschatz`_; this database
-is free for educational und researching purposes but not for
+is free for educational and researching purposes but not for
 commercial use. For more information visit:
 http://wortschatz.uni-leipzig.de/.
 
@@ -321,5 +320,5 @@ The GermaNLTK project had a script to push the content of the XML
 files into a sqlite database; I haven't tested this code myself, and
 the GermaNet database has changed over the years since GermaNLTK was
 written.  This ``mongo_import.py`` script included in this library does much the
-same thing, and could easily be adapted to use sqlite as a backend
+same thing, and could easily be adapted to use sqlite as a back end
 instead of MongoDB.
