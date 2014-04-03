@@ -146,6 +146,102 @@ objects belonging to different ``Synset`` objects::
      Lemma(brennen.v.7.brennen),
      Lemma(brennen.v.8.brennen)]
 
+Semantic Similarity
+-------------------
+
+pygermanet includes several functions for calculating semantic
+similarity and semantic distance, somewhat like `WN::Similarity`_.
+These metrics use word frequency information estimated on the SdeWac_
+corpus and then automatically lemmatised using the TreeTagger_.  Using
+this interface, we can replicate the results of `(Gurevych, 2005)`_
+and `(Gurevych and Niederlich, 2005)`_, who collected human semantic
+similarity judgments on 65 word pairs and then measured the
+correlation of these judgments against similarity scores reported by
+various automatic similarity metrics.  These two papers reported
+Pearson's *r* of 0.715 for (Resnik, 1995), 0.738 for a normalised
+distance version of (Jiang and Conrath, 1997), and 0.734 for (Lin,
+1998), with inter-annotator agreement of 0.810.
+
+Replication of the two studies, using the gur65_ dataset::
+
+    from germanet import load_germanet, Synset
+    from scipy.stats.stats import pearsonr
+    import codecs
+    import numpy as np
+
+    GUR65_FILENAME = 'gur65.csv'
+
+    def load_gurevych():
+        gur65 = []
+        with codecs.open(GUR65_FILENAME, 'r', 'latin-1') as input_file:
+            for idx, line in enumerate(input_file):
+                fields = line.strip().split(';')
+                if idx == 0:
+                    header = fields
+                else:
+                    # fix typo in gur65
+                    fields[1] = {'Reis': 'Reise'}.get(fields[1], fields[1])
+                    fields[2] = float(fields[2])
+                    fields[3] = float(fields[3])
+                    gur65.append(fields)
+        gur65 = np.core.records.array(
+            gur65,
+            dtype=np.dtype({'formats': ['U30', 'U30', '<f8', '<f8'],
+                            'names': header}))
+        return gur65
+
+    gur65 = load_gurevych()
+    gn    = load_germanet()
+
+    # select those words which are found in GermeNet; exclude the
+    # adjective "jung"
+    pred = lambda w1, w2: bool(gn.synsets(w1) and gn.synsets(w2) and
+                               w1 != 'jung' and w2 != 'jung')
+
+    print 'Semantic similarity computed on {0} of {1} word pairs'.format(
+        sum([1 for word1, word2 in zip(gur65['Word1'], gur65['Word2'])
+             if pred(word1, word2)]),
+        len(gur65))
+
+    sim_funcs = [('lch', Synset.sim_lch,  np.max),
+                 ('res', Synset.sim_res,  np.max),
+                 ('jcn', Synset.dist_jcn, np.min),
+                 ('lin', Synset.sim_lin,  np.max)]
+
+    print
+    print 'metric   r'
+    print '---------------'
+    for sim_name, sim_func, comb_func in sim_funcs:
+        scores = []
+        for word1, word2, human, _hstd in gur65:
+            if not pred(word1, word2):
+                continue
+            score = comb_func(np.array([sim_func(ss1, ss2)
+                                        for ss1 in gn.synsets(word1)
+                                        for ss2 in gn.synsets(word2)]))
+            scores.append([score, human])
+        scores = np.array(scores)
+        r, _p = pearsonr(scores[:,0],scores[:,1])
+        print '{0}      {1:.3f}'.format(sim_name, r)
+
+This script outputs::
+
+    Semantic similarity computed on 60 of 65 word pairs
+
+    metric   r
+    ---------------
+    lch      0.742
+    res      0.713
+    jcn      -0.768
+    lin      0.735
+
+.. _`WN::Similarity`: http://wn-similarity.sourceforge.net/
+.. _gur65: https://www.ukp.tu-darmstadt.de/data/semantic-relatedness/german-relatedness-datasets/
+.. _TreeTagger: http://www.cis.uni-muenchen.de/~schmid/tools/TreeTagger/
+.. _SdeWaC: http://www.ims.uni-stuttgart.de/forschung/ressourcen/korpora/sdewac.en.html
+.. _`(Gurevych, 2005)`: http://atlas.tk.informatik.tu-darmstadt.de/Publications/2005/ijcnlp05.pdf
+.. _`(Gurevych and Niederlich, 2005)`: http://oldsite.aclweb.org/anthology-new/I/I05/I05-7005.pdf
+
 Requirements
 ------------
 
