@@ -48,7 +48,7 @@ word form using the ``synsets`` function::
 
 To look up synsets, you must have the canonical form of the word as it
 would appear in a dictionary (head word); this module calls this word
-form the lemma.  The GermaNet instance can perform lemmatisation of
+form the *lemma*.  The GermaNet instance can perform lemmatisation of
 words using data derived from the `Projekt deutscher Wortschatz`_::
 
     >>> gn.lemmatise(u'ginge')
