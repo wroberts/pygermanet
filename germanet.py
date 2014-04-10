@@ -399,7 +399,8 @@ class Synset(object):
     def lowest_common_hypernyms(self, other):
         '''
         Finds the set of hypernyms common to both this synset and
-        ``other`` which are lowest in the GermaNet hierarchy.
+        ``other`` which are lowest in the GermaNet hierarchy (furthest
+        away from GNROOT).
 
         Arguments:
         - `other`: another synset
@@ -418,6 +419,24 @@ class Synset(object):
         max_depth     = max(x[0] for x in common_hypers)
         return set(synset for (depth, synset) in common_hypers
                    if depth == max_depth)
+
+    def nearest_common_hypernyms(self, other):
+        '''
+        Finds the set of hypernyms common to both this synset and
+        ``other`` which are closest to the two synsets (the hypernyms
+        which the minimum path length joining the two synsets passes
+        through).
+
+        Arguments:
+        - `other`: another synset
+        '''
+        common_hypers = [(dist, synset) for (synset, dist) in
+                         self._common_hypernyms(other).items()]
+        if not common_hypers:
+            return set()
+        min_dist = min(x[0] for x in common_hypers)
+        return set(synset for (dist, synset) in common_hypers
+                   if dist == min_dist)
 
     def shortest_path_length(self, other):
         '''
@@ -469,8 +488,12 @@ class Synset(object):
         if not isinstance(other, Synset):
             return 0.
         # find the lowest concept which subsumes both this synset and
-        # ``other``
-        common_hypers = self.lowest_common_hypernyms(other)
+        # ``other``;
+        #common_hypers = self.lowest_common_hypernyms(other)
+        # specifically, we choose the hypernym "closest" to this
+        # synset and ``other``, not the hypernym which is furthest
+        # away from GNROOT (as is done by lowest_common_hypernyms)
+        common_hypers = self.nearest_common_hypernyms(other)
         if not common_hypers:
             return 0.
         # infocont is actually the probability

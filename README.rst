@@ -230,9 +230,9 @@ This script outputs::
     metric   r
     ---------------
     lch      0.742
-    res      0.713
-    jcn      -0.768
-    lin      0.735
+    res      0.715
+    jcn      -0.770
+    lin      0.737
 
 .. _`WN::Similarity`: http://wn-similarity.sourceforge.net/
 .. _gur65: https://www.ukp.tu-darmstadt.de/data/semantic-relatedness/german-relatedness-datasets/
