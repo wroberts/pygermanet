@@ -548,11 +548,12 @@ def insert_infocontent_data(germanet_db):
     - `germanet_db`: a pymongo.database.Database object
     '''
     gnet           = germanet.GermaNet(germanet_db)
-    gn_counts      = defaultdict(float)
+    # use add one smoothing
+    gn_counts      = defaultdict(lambda: 1.)
+    total_count    = 1
     input_file     = gzip.open(WORD_COUNT_FILE)
     num_lines_read = 0
     num_lines      = 0
-    total_count    = 0
     for line in input_file:
         line       = line.strip().split('\t')
         num_lines += 1
