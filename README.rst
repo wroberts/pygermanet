@@ -151,7 +151,20 @@ Semantic Similarity
 pygermanet includes several functions for calculating semantic
 similarity and semantic distance, somewhat like `WN::Similarity`_.
 These metrics use word frequency information estimated on the SdeWaC_
-corpus and then automatically lemmatised using the TreeTagger_.  Using
+corpus and then automatically lemmatised using the TreeTagger_.
+
+The probability of encountering an instance of a given sunset *s* is
+estimated over SdeWaC using the procedure described by Resnik (1995).
+Briefly, for each instance of a noun in the corpus, we find the set of
+synsets *S* containing a sense of that noun; each of these synsets is then
+credited with a count of 1/*|S|*.  A count added to a synset is
+also added to all of its hypernyms, so that count observations are
+propagated up the taxonomy.  By dividing by the total number of noun
+instances in the corpus, each synset is assigned a probability value;
+these probabilities increase monotonically up the taxonomy, and the
+root node has $p = 1$.
+
+Using
 this interface, we can replicate the results of `(Gurevych, 2005)`_
 and `(Gurevych and Niederlich, 2005)`_, who collected human semantic
 similarity judgements on 65 word pairs and then measured the
