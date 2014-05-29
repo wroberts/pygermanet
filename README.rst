@@ -162,7 +162,7 @@ also added to all of its hypernyms, so that count observations are
 propagated up the taxonomy.  By dividing by the total number of noun
 instances in the corpus, each synset is assigned a probability value;
 these probabilities increase monotonically up the taxonomy, and the
-root node has $p = 1$.
+root node has *p = 1*.
 
 Using
 this interface, we can replicate the results of `(Gurevych, 2005)`_
