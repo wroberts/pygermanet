@@ -154,7 +154,7 @@ These metrics use word frequency information estimated on the SdeWaC_
 corpus and then automatically lemmatised using the TreeTagger_.
 
 The probability of encountering an instance of a given synset *s* is
-estimated over SdeWaC using the procedure described by Resnik (1995).
+estimated over SdeWaC using the procedure described by `Resnik (1995)`_.
 Briefly, for each instance of a noun in the corpus, we find the set of
 synsets *S* containing a sense of that noun; each of these synsets is then
 credited with a count of 1/*|S|*.  A count added to a synset is
@@ -171,8 +171,8 @@ similarity judgements on 65 word pairs and then measured the
 correlation of these judgements against similarity scores reported by
 various automatic similarity metrics.  These two papers reported
 Pearson's *r* of 0.715 for (Resnik, 1995), 0.738 for a normalised
-distance version of (Jiang and Conrath, 1997), and 0.734 for (Lin,
-1998), with inter-annotator agreement of 0.810.
+distance version of `(Jiang and Conrath, 1997)`_, and 0.734 for
+`(Lin, 1998)`_, with inter-annotator agreement of 0.810.
 
 Replication of the two studies, using the gur65_ data set::
 
@@ -253,6 +253,9 @@ This script outputs::
 .. _SdeWaC: http://www.ims.uni-stuttgart.de/forschung/ressourcen/korpora/sdewac.en.html
 .. _`(Gurevych, 2005)`: http://atlas.tk.informatik.tu-darmstadt.de/Publications/2005/ijcnlp05.pdf
 .. _`(Gurevych and Niederlich, 2005)`: http://oldsite.aclweb.org/anthology-new/I/I05/I05-7005.pdf
+.. _`(Jiang and Conrath, 1997)`: http://arxiv.org/pdf/cmp-lg/9709008.pdf
+.. _`(Lin, 1998)`: http://webdocs.cs.ualberta.ca/~lindek/papers/sim.pdf
+.. _`Resnik (1995)`: http://arxiv.org/pdf/cmp-lg/9511007.pdf
 
 Requirements
 ------------
