@@ -153,7 +153,7 @@ similarity and semantic distance, somewhat like `WN::Similarity`_.
 These metrics use word frequency information estimated on the SdeWaC_
 corpus and then automatically lemmatised using the TreeTagger_.
 
-The probability of encountering an instance of a given sunset *s* is
+The probability of encountering an instance of a given synset *s* is
 estimated over SdeWaC using the procedure described by Resnik (1995).
 Briefly, for each instance of a noun in the corpus, we find the set of
 synsets *S* containing a sense of that noun; each of these synsets is then
