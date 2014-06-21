@@ -43,9 +43,14 @@ class GermaNet(object):
         self._lemma_cache   = None
         self._synset_cache  = None
         self.max_min_depths = {}
-        self.__dict__.update((k, v) for (k, v)
-                             in self._mongo_db.metainfo.find_one().items()
-                             if k not in GERMANET_METAINFO_IGNORE_KEYS)
+        try:
+            self.__dict__.update((k, v) for (k, v)
+                                 in self._mongo_db.metainfo.find_one().items()
+                                 if k not in GERMANET_METAINFO_IGNORE_KEYS)
+        except AttributeError:
+            # ignore error generated if metainfo is not included in
+            # the mongo DB
+            pass
         try:
             self._lemma_cache  = repoze.lru.LRUCache(cache_size)
             self._synset_cache = repoze.lru.LRUCache(cache_size)
