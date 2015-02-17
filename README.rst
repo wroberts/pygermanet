@@ -340,3 +340,12 @@ the GermaNet database has changed over the years since GermaNLTK was
 written.  This ``mongo_import.py`` script included in this library does much the
 same thing, and could easily be adapted to use sqlite as a back end
 instead of MongoDB.
+
+
+Contributors
+------------
+
+Thanks to stefanpernes_ for his work on making a Python 3 port of
+pygermanet.
+
+.. _stefanpernes: https://github.com/stefanpernes
