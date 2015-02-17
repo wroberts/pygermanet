@@ -515,6 +515,8 @@ def insert_paraphrase_information(germanet_db, wiktionary_files):
 
     print('Inserted {0} wiktionary paraphrases.'.format(num_paraphrases))
 
+LEMMATISATION_FILE = 'baseforms_by_projekt_deutscher_wortschatz.txt.gz'
+
 def insert_lemmatisation_data(germanet_db):
     '''
     Creates the lemmatiser collection in the given MongoDB instance
@@ -526,7 +528,8 @@ def insert_lemmatisation_data(germanet_db):
     # drop the database collection if it already exists
     germanet_db.lemmatiser.drop()
     num_lemmas = 0
-    input_file = gzip.open('baseforms_by_projekt_deutscher_wortschatz.txt.gz')
+    input_file = gzip.open(os.path.join(os.path.dirname(__file__),
+                                        LEMMATISATION_FILE))
     for line in input_file:
         line = line.decode('iso-8859-1').strip().split('\t')
         assert len(line) == 2
@@ -557,7 +560,8 @@ def insert_infocontent_data(germanet_db):
     # use add one smoothing
     gn_counts      = defaultdict(lambda: 1.)
     total_count    = 1
-    input_file     = gzip.open(WORD_COUNT_FILE)
+    input_file     = gzip.open(os.path.join(os.path.dirname(__file__),
+                                            WORD_COUNT_FILE))
     num_lines_read = 0
     num_lines      = 0
     for line in input_file:
