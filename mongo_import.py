@@ -8,9 +8,10 @@ mongo_import.py
 A script to import the GermaNet lexicon into a MongoDB database.
 '''
 
+from . import germanet
+from __future__ import absolute_import, division, print_function
 from collections import defaultdict
 from pymongo import DESCENDING, MongoClient
-import germanet
 import glob
 import gzip
 import optparse
@@ -42,7 +43,7 @@ def find_germanet_xml_files(xml_path):
     xml_files = sorted(set(xml_files) - set(lex_files))
 
     if not lex_files:
-        print 'ERROR: cannot find lexical information files'
+        print('ERROR: cannot find lexical information files')
 
     # sort out the GermaNet relations file
     gn_rels_file = [xml_file for xml_file in xml_files if
@@ -50,7 +51,7 @@ def find_germanet_xml_files(xml_path):
     xml_files = sorted(set(xml_files) - set(gn_rels_file))
 
     if not gn_rels_file:
-        print 'ERROR: cannot find relations file gn_relations.xml'
+        print('ERROR: cannot find relations file gn_relations.xml')
         gn_rels_file = None
     else:
         if 1 < len(gn_rels_file):
@@ -65,7 +66,7 @@ def find_germanet_xml_files(xml_path):
     xml_files = sorted(set(xml_files) - set(wiktionary_files))
 
     if not wiktionary_files:
-        print 'WARNING: cannot find wiktionary paraphrase files'
+        print('WARNING: cannot find wiktionary paraphrase files')
 
     # sort out the interlingual index file
     ili_files = [xml_file for xml_file in xml_files if
@@ -74,10 +75,10 @@ def find_germanet_xml_files(xml_path):
     xml_files = sorted(set(xml_files) - set(ili_files))
 
     if not ili_files:
-        print 'WARNING: cannot find interlingual index file'
+        print('WARNING: cannot find interlingual index file')
 
     if xml_files:
-        print 'WARNING: unrecognised xml files:', xml_files
+        print('WARNING: unrecognised xml files:', xml_files)
 
     return lex_files, gn_rels_file, wiktionary_files, ili_files
 
@@ -109,11 +110,11 @@ def warn_attribs(loc,
         reqd_attribs = recognised_attribs
     found_attribs = set(node.keys())
     if reqd_attribs - found_attribs:
-        print loc, 'missing <{0}> attributes'.format(node.tag), (
-            reqd_attribs - found_attribs)
+        print(loc, 'missing <{0}> attributes'.format(node.tag),
+              reqd_attribs - found_attribs)
     if found_attribs - recognised_attribs:
-        print loc, 'unrecognised <{0}> properties'.format(node.tag), (
-            found_attribs - recognised_attribs)
+        print(loc, 'unrecognised <{0}> properties'.format(node.tag),
+              found_attribs - recognised_attribs)
 
 SYNSET_ATTRIBS   = set(['category', 'id', 'class'])
 LEXUNIT_ATTRIBS  = set(['styleMarking', 'namedEntity', 'artificial',
@@ -141,7 +142,7 @@ def read_lexical_file(filename):
     assert doc.getroot().tag == 'synsets'
     for synset in doc.getroot():
         if synset.tag != 'synset':
-            print 'unrecognised child of <synsets>', synset
+            print('unrecognised child of <synsets>', synset)
             continue
         synset_dict = dict(synset.items())
         synloc = '{0} synset {1},'.format(filename,
@@ -161,9 +162,9 @@ def read_lexical_file(filename):
                 for key in ['styleMarking', 'artificial', 'namedEntity']:
                     if key in lexunit_dict:
                         if lexunit_dict[key] not in MAP_YESNO_TO_BOOL:
-                            print lexloc, ('lexunit property {0} has '
-                                           'non-boolean value').format(key), \
-                                           lexunit_dict[key]
+                            print(lexloc, ('lexunit property {0} has '
+                                           'non-boolean value').format(key),
+                                  lexunit_dict[key])
                             continue
                         lexunit_dict[key] = MAP_YESNO_TO_BOOL[lexunit_dict[key]]
                 # convert sense to integer number
@@ -171,9 +172,9 @@ def read_lexical_file(filename):
                     if lexunit_dict['sense'].isdigit():
                         lexunit_dict['sense'] = int(lexunit_dict['sense'], 10)
                     else:
-                        print lexloc, ('lexunit property sense has '
-                                       'non-numeric value'), \
-                                       lexunit_dict['sense']
+                        print(lexloc,
+                              'lexunit property sense has non-numeric value',
+                              lexunit_dict['sense'])
                 synset_dict['lexunits'].append(lexunit_dict)
                 lexunit_dict['examples'] = []
                 lexunit_dict['frames']   = []
@@ -184,42 +185,44 @@ def read_lexical_file(filename):
                                      'oldOrthVar']:
                         warn_attribs(lexloc, child, set())
                         if not child.text:
-                            print lexloc, '{0} with no text'.format(child.tag)
+                            print(lexloc, '{0} with no text'.format(child.tag))
                             continue
                         if child.tag in lexunit_dict:
-                            print lexloc, 'more than one {0}'.format(child.tag)
+                            print(lexloc, 'more than one {0}'.format(child.tag))
                         lexunit_dict[child.tag] = unicode(child.text)
                     elif child.tag == 'example':
                         example = child
                         text = [child for child in example
                                 if child.tag == 'text']
                         if len(text) != 1 or not text[0].text:
-                            print lexloc, '<example> tag without text'
+                            print(lexloc, '<example> tag without text')
                         example_dict = {'text': unicode(text[0].text)}
                         for child in example:
                             if child.tag == 'text':
                                 continue
                             elif child.tag == 'exframe':
                                 if 'exframe' in example_dict:
-                                    print lexloc, ('more than one <exframe> '
-                                                   'for <example>')
+                                    print(lexloc,
+                                          'more than one <exframe> '
+                                          'for <example>')
                                 warn_attribs(lexloc, child, set())
                                 if not child.text:
-                                    print lexloc, '<exframe> with no text'
+                                    print(lexloc, '<exframe> with no text')
                                     continue
                                 example_dict['exframe'] = unicode(child.text)
                             else:
-                                print lexloc, ('unrecognised child of '
-                                               '<example>'), child
+                                print(lexloc,
+                                      'unrecognised child of <example>',
+                                      child)
                         lexunit_dict['examples'].append(example_dict)
                     elif child.tag == 'frame':
                         frame = child
                         warn_attribs(lexloc, frame, set())
                         if 0 < len(frame):
-                            print lexloc, 'unrecognised <frame> children', \
-                                list(frame)
+                            print(lexloc, 'unrecognised <frame> children',
+                                list(frame))
                         if not frame.text:
-                            print lexloc, '<frame> without text'
+                            print(lexloc, '<frame> without text')
                             continue
                         lexunit_dict['frames'].append(unicode(frame.text))
                     elif child.tag == 'compound':
@@ -232,7 +235,7 @@ def read_lexical_file(filename):
                                 warn_attribs(lexloc, child,
                                              MODIFIER_ATTRIBS, set())
                                 if not child.text:
-                                    print lexloc, 'modifier without text'
+                                    print(lexloc, 'modifier without text')
                                     continue
                                 modifier_dict['text'] = unicode(child.text)
                                 if 'modifier' not in compound_dict:
@@ -242,28 +245,29 @@ def read_lexical_file(filename):
                                 head_dict = dict(child.items())
                                 warn_attribs(lexloc, child, HEAD_ATTRIBS, set())
                                 if not child.text:
-                                    print lexloc, '<head> without text'
+                                    print(lexloc, '<head> without text')
                                     continue
                                 head_dict['text'] = unicode(child.text)
                                 if 'head' in compound_dict:
-                                    print lexloc, ('more than one head in '
-                                                   '<compound>')
+                                    print(lexloc,
+                                          'more than one head in <compound>')
                                 compound_dict['head'] = head_dict
                             else:
-                                print lexloc, ('unrecognised child of '
-                                               '<compound>'), child
+                                print(lexloc,
+                                      'unrecognised child of <compound>',
+                                      child)
                                 continue
                     else:
-                        print lexloc, 'unrecognised child of <lexUnit>', child
+                        print(lexloc, 'unrecognised child of <lexUnit>', child)
                         continue
             elif child.tag == 'paraphrase':
                 paraphrase = child
                 warn_attribs(synloc, paraphrase, set())
                 paraphrase_text = unicode(paraphrase.text)
                 if not paraphrase_text:
-                    print synloc, 'WARNING: <paraphrase> tag with no text'
+                    print(synloc, 'WARNING: <paraphrase> tag with no text')
             else:
-                print synloc, 'unrecognised child of <synset>', child
+                print(synloc, 'unrecognised child of <synset>', child)
                 continue
 
     return synsets
@@ -296,28 +300,28 @@ def read_relation_file(filename):
     for child in doc.getroot():
         if child.tag == 'lex_rel':
             if 0 < len(child):
-                print '<lex_rel> has unexpected child node'
+                print('<lex_rel> has unexpected child node')
             child_dict = dict(child.items())
             warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in LEX_REL_DIRS:
-                print 'unrecognized <lex_rel> dir', child_dict['dir']
+                print('unrecognized <lex_rel> dir', child_dict['dir'])
             if child_dict['dir'] == 'both' and 'inv' not in child_dict:
-                print '<lex_rel> has dir=both but does not specify inv'
+                print('<lex_rel> has dir=both but does not specify inv')
             lex_rels.append(child_dict)
         elif child.tag == 'con_rel':
             if 0 < len(child):
-                print '<con_rel> has unexpected child node'
+                print('<con_rel> has unexpected child node')
             child_dict = dict(child.items())
             warn_attribs('', child, RELATION_ATTRIBS, RELATION_ATTRIBS_REQD)
             if child_dict['dir'] not in CON_REL_DIRS:
-                print 'unrecognised <con_rel> dir', child_dict['dir']
+                print('unrecognised <con_rel> dir', child_dict['dir'])
             if (child_dict['dir'] in ['both', 'revert'] and
                 'inv' not in child_dict):
-                print '<con_rel> has dir={0} but does not specify inv'.format(
-                    child_dict['dir'])
+                print('<con_rel> has dir={0} but does not specify inv'.format(
+                    child_dict['dir']))
             con_rels.append(child_dict)
         else:
-            print 'unrecognised child of <relations>', child
+            print('unrecognised child of <relations>', child)
             continue
 
     return lex_rels, con_rels
@@ -348,24 +352,24 @@ def read_paraphrase_file(filename):
             paraphrase = child
             warn_attribs('', paraphrase, PARAPHRASE_ATTRIBS)
             if 0 < len(paraphrase):
-                print 'unrecognised child of <wiktionaryParaphrase>', \
-                    list(paraphrase)
+                print('unrecognised child of <wiktionaryParaphrase>',
+                      list(paraphrase))
             paraphrase_dict = dict(paraphrase.items())
             if paraphrase_dict['edited'] not in MAP_YESNO_TO_BOOL:
-                print '<paraphrase> attribute "edited" has unexpected value', \
-                    paraphrase_dict['edited']
+                print('<paraphrase> attribute "edited" has unexpected value',
+                      paraphrase_dict['edited'])
             else:
                 paraphrase_dict['edited'] = MAP_YESNO_TO_BOOL[
                     paraphrase_dict['edited']]
             if not paraphrase_dict['wiktionarySenseId'].isdigit():
-                print ('<paraphrase> attribute "wiktionarySenseId" has '
-                       'non-integer value'), paraphrase_dict['edited']
+                print('<paraphrase> attribute "wiktionarySenseId" has '
+                      'non-integer value', paraphrase_dict['edited'])
             else:
                 paraphrase_dict['wiktionarySenseId'] = \
                     int(paraphrase_dict['wiktionarySenseId'], 10)
             paraphrases.append(paraphrase_dict)
         else:
-            print 'unknown child of <wiktionaryParaphrases>', child
+            print('unknown child of <wiktionaryParaphrases>', child)
 
     return paraphrases
 
@@ -416,9 +420,9 @@ def insert_lexical_information(germanet_db, lex_files):
     germanet_db.lexunits.create_index([('orthForm', DESCENDING),
                                        ('category', DESCENDING),
                                        ('sense', DESCENDING)])
-    print 'Inserted {0} synsets, {1} lexical units.'.format(
+    print('Inserted {0} synsets, {1} lexical units.'.format(
         germanet_db.synsets.count(),
-        germanet_db.lexunits.count())
+        germanet_db.lexunits.count()))
 
 def insert_relation_information(germanet_db, gn_rels_file):
     '''
@@ -477,8 +481,8 @@ def insert_relation_information(germanet_db, gn_rels_file):
             synset['rels'] = sorted(synset['rels'])
             germanet_db.synsets.save(synset)
 
-    print 'Inserted {0} lexical relations, {1} synset relations.'.format(
-        len(lex_rels), len(con_rels))
+    print('Inserted {0} lexical relations, {1} synset relations.'.format(
+        len(lex_rels), len(con_rels)))
 
 def insert_paraphrase_information(germanet_db, wiktionary_files):
     '''
@@ -507,7 +511,7 @@ def insert_paraphrase_information(germanet_db, wiktionary_files):
     for lexunit in lexunits.values():
         germanet_db.lexunits.save(lexunit)
 
-    print 'Inserted {0} wiktionary paraphrases.'.format(num_paraphrases)
+    print('Inserted {0} wiktionary paraphrases.'.format(num_paraphrases))
 
 def insert_lemmatisation_data(germanet_db):
     '''
@@ -530,7 +534,7 @@ def insert_lemmatisation_data(germanet_db):
     # index the collection on 'word'
     germanet_db.lemmatiser.create_index('word')
 
-    print 'Inserted {0} lemmatiser entries.'.format(num_lemmas)
+    print('Inserted {0} lemmatiser entries.'.format(num_lemmas))
 
 
 # ------------------------------------------------------------
@@ -576,10 +580,10 @@ def insert_infocontent_data(germanet_db):
             for path in paths:
                 for ss in path:
                     gn_counts[ss._id] += scount
-    print 'Read {0} of {1} lines from count file.'.format(num_lines_read,
-                                                          num_lines)
-    print 'Recorded counts for {0} synsets.'.format(len(gn_counts))
-    print 'Total count is {0}'.format(total_count)
+    print('Read {0} of {1} lines from count file.'.format(num_lines_read,
+                                                          num_lines))
+    print('Recorded counts for {0} synsets.'.format(len(gn_counts)))
+    print('Total count is {0}'.format(total_count))
     input_file.close()
     # update all the synset records in GermaNet
     num_updates = 0
@@ -587,7 +591,7 @@ def insert_infocontent_data(germanet_db):
         synset['infocont'] = gn_counts[synset['_id']] / total_count
         germanet_db.synsets.save(synset)
         num_updates += 1
-    print 'Updated {0} synsets.'.format(num_updates)
+    print('Updated {0} synsets.'.format(num_updates))
 
 def compute_max_min_depth(germanet_db):
     '''
@@ -610,9 +614,9 @@ def compute_max_min_depth(germanet_db):
     metainfo['max_min_depths'] = max_min_depths
     germanet_db.metainfo.save(metainfo)
 
-    print 'Computed maximum min_depth for all parts of speech:'
-    print u', '.join(u'{0}: {1}'.format(k, v) for (k, v) in
-                     sorted(max_min_depths.items())).encode('utf-8')
+    print('Computed maximum min_depth for all parts of speech:')
+    print(u', '.join(u'{0}: {1}'.format(k, v) for (k, v) in
+                     sorted(max_min_depths.items())).encode('utf-8'))
 
 
 # ------------------------------------------------------------

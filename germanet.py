@@ -8,6 +8,7 @@ germanet.py
 GermaNet interface.
 '''
 
+from __future__ import division
 from pymongo import MongoClient
 import functools
 import math
