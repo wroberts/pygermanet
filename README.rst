@@ -176,7 +176,7 @@ distance version of `(Jiang and Conrath, 1997)`_, and 0.734 for
 
 Replication of the two studies, using the gur65_ data set::
 
-    from germanet import load_germanet, Synset
+    from pygermanet.germanet import load_germanet, Synset
     from scipy.stats.stats import pearsonr
     import codecs
     import numpy as np
@@ -294,7 +294,7 @@ two steps.
    script needs the path to the directory that contains the GermaNet
    XML files::
 
-       ./mongo_import.py ~/corpora/germanet/GN_V80/GN_V80_XML/
+       python -m pygermanet.mongo_import ~/corpora/germanet/GN_V80/GN_V80_XML/
 
    This step only needs to be performed once, before you use
    pygermanet for the first time.
