@@ -565,7 +565,7 @@ def insert_infocontent_data(germanet_db):
     num_lines_read = 0
     num_lines      = 0
     for line in input_file:
-        line       = line.strip().split('\t')
+        line       = line.decode('utf-8').strip().split('\t')
         num_lines += 1
         if len(line) != 3:
             continue
