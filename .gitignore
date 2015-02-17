@@ -1,5 +1,8 @@
 *.pyc
 *~
 .DS_Store
+/build/
+/dist/
 /mongodb/
+/pygermanet.egg-info/
 /scripts/sdewac-treetagger.tsv.gz
