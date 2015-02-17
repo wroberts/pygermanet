@@ -9,8 +9,8 @@ GermaNet interface.
 '''
 
 from __future__ import division
+from builtins import dict, int
 from functools import reduce
-from future.builtins import dict, int
 from pymongo import MongoClient
 import functools
 import math
