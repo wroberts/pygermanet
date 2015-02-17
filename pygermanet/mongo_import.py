@@ -8,8 +8,8 @@ mongo_import.py
 A script to import the GermaNet lexicon into a MongoDB database.
 '''
 
-from . import germanet
 from __future__ import absolute_import, division, print_function
+from . import germanet
 from collections import defaultdict
 from future.builtins import dict, int, open, str, zip
 from pymongo import DESCENDING, MongoClient
