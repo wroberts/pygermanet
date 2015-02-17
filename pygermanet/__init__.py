@@ -5,4 +5,5 @@ __init__.py
 __init__ file to allow pygermanet to be loaded as a module.
 '''
 
-from pygermanet.germanet import load_germanet, Synset, Lemma
+from __future__ import absolute_import
+from .germanet import load_germanet, Synset, Lemma
