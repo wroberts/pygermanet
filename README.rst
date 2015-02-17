@@ -261,13 +261,15 @@ Requirements
 ------------
 
 - The GermaNet_ resource (available from the University of Tübingen)
-- Python 2.7
+- Python 2.7 or Python 3 (tested with Python 3.4)
 - MongoDB_
 - pymongo_
+- future_
 - `repoze.lru`_ (optional)
 
 .. _MongoDB:    https://www.mongodb.org/
 .. _pymongo:    http://api.mongodb.org/python/current/
+.. _future:     http://python-future.org
 .. _repoze.lru: https://pypi.python.org/pypi/repoze.lru/
 
 Example setup::
