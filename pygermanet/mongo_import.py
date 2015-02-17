@@ -11,7 +11,8 @@ A script to import the GermaNet lexicon into a MongoDB database.
 from __future__ import absolute_import, division, print_function
 from . import germanet
 from collections import defaultdict
-from future.builtins import dict, int, open, str, zip
+from future.builtins import dict, int, str, zip
+from io import open
 from pymongo import DESCENDING, MongoClient
 import glob
 import gzip
@@ -136,7 +137,7 @@ def read_lexical_file(filename):
     Arguments:
     - `filename`: the name of the XML file to read
     '''
-    with open(filename, 'r') as input_file:
+    with open(filename, 'rb') as input_file:
         doc = etree.parse(input_file)
 
     synsets = []
@@ -292,7 +293,7 @@ def read_relation_file(filename):
     Arguments:
     - `filename`:
     '''
-    with open(filename, 'r') as input_file:
+    with open(filename, 'rb') as input_file:
         doc = etree.parse(input_file)
 
     lex_rels = []
@@ -343,7 +344,7 @@ def read_paraphrase_file(filename):
     Arguments:
     - `filename`:
     '''
-    with open(filename) as input_file:
+    with open(filename, 'rb') as input_file:
         doc = etree.parse(input_file)
 
     assert doc.getroot().tag == 'wiktionaryParaphrases'
