@@ -9,6 +9,8 @@ GermaNet interface.
 '''
 
 from __future__ import division
+from functools import reduce
+from future.builtins import dict, int
 from pymongo import MongoClient
 import functools
 import math
@@ -232,7 +234,7 @@ class Synset(object):
         self.infocont     = 0.
         self._lexunits    = None
         self.__dict__.update((SYNSET_MEMBER_REWRITES.get(k, k), v)
-                             for (k, v) in db_dict.iteritems())
+                             for (k, v) in db_dict.items())
 
     @property
     def lemmas(self):
@@ -437,7 +439,7 @@ class Synset(object):
         - `other`: another synset
         '''
         common_hypers = [(dist, synset) for (synset, dist) in
-                         self._common_hypernyms(other).items()]
+                         list(self._common_hypernyms(other).items())]
         if not common_hypers:
             return set()
         min_dist = min(x[0] for x in common_hypers)
@@ -585,7 +587,7 @@ class Lemma(object):
         self.styleMarking = None
         self._synset      = None
         self.__dict__.update((LEMMA_MEMBER_REWRITES.get(k, k), v)
-                             for (k, v) in db_dict.iteritems())
+                             for (k, v) in db_dict.items())
 
     @property
     def synset(self):

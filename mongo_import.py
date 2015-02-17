@@ -11,6 +11,7 @@ A script to import the GermaNet lexicon into a MongoDB database.
 from . import germanet
 from __future__ import absolute_import, division, print_function
 from collections import defaultdict
+from future.builtins import dict, int, open, str, zip
 from pymongo import DESCENDING, MongoClient
 import glob
 import gzip
@@ -189,14 +190,14 @@ def read_lexical_file(filename):
                             continue
                         if child.tag in lexunit_dict:
                             print(lexloc, 'more than one {0}'.format(child.tag))
-                        lexunit_dict[child.tag] = unicode(child.text)
+                        lexunit_dict[child.tag] = str(child.text)
                     elif child.tag == 'example':
                         example = child
                         text = [child for child in example
                                 if child.tag == 'text']
                         if len(text) != 1 or not text[0].text:
                             print(lexloc, '<example> tag without text')
-                        example_dict = {'text': unicode(text[0].text)}
+                        example_dict = {'text': str(text[0].text)}
                         for child in example:
                             if child.tag == 'text':
                                 continue
@@ -209,7 +210,7 @@ def read_lexical_file(filename):
                                 if not child.text:
                                     print(lexloc, '<exframe> with no text')
                                     continue
-                                example_dict['exframe'] = unicode(child.text)
+                                example_dict['exframe'] = str(child.text)
                             else:
                                 print(lexloc,
                                       'unrecognised child of <example>',
@@ -224,7 +225,7 @@ def read_lexical_file(filename):
                         if not frame.text:
                             print(lexloc, '<frame> without text')
                             continue
-                        lexunit_dict['frames'].append(unicode(frame.text))
+                        lexunit_dict['frames'].append(str(frame.text))
                     elif child.tag == 'compound':
                         compound = child
                         warn_attribs(lexloc, compound, set())
@@ -237,7 +238,7 @@ def read_lexical_file(filename):
                                 if not child.text:
                                     print(lexloc, 'modifier without text')
                                     continue
-                                modifier_dict['text'] = unicode(child.text)
+                                modifier_dict['text'] = str(child.text)
                                 if 'modifier' not in compound_dict:
                                     compound_dict['modifier'] = []
                                 compound_dict['modifier'].append(modifier_dict)
@@ -247,7 +248,7 @@ def read_lexical_file(filename):
                                 if not child.text:
                                     print(lexloc, '<head> without text')
                                     continue
-                                head_dict['text'] = unicode(child.text)
+                                head_dict['text'] = str(child.text)
                                 if 'head' in compound_dict:
                                     print(lexloc,
                                           'more than one head in <compound>')
@@ -263,7 +264,7 @@ def read_lexical_file(filename):
             elif child.tag == 'paraphrase':
                 paraphrase = child
                 warn_attribs(synloc, paraphrase, set())
-                paraphrase_text = unicode(paraphrase.text)
+                paraphrase_text = str(paraphrase.text)
                 if not paraphrase_text:
                     print(synloc, 'WARNING: <paraphrase> tag with no text')
             else:
@@ -402,7 +403,7 @@ def insert_lexical_information(germanet_db, lex_files):
         synsets = read_lexical_file(lex_file)
         for synset in synsets:
             synset = dict((SYNSET_KEY_REWRITES.get(key, key), value)
-                          for (key, value) in synset.iteritems())
+                          for (key, value) in synset.items())
             lexunits = synset['lexunits']
             synset['lexunits'] = germanet_db.lexunits.insert(lexunits)
             synset_id = germanet_db.synsets.insert(synset)
@@ -528,7 +529,7 @@ def insert_lemmatisation_data(germanet_db):
     for line in input_file:
         line = line.decode('iso-8859-1').strip().split('\t')
         assert len(line) == 2
-        germanet_db.lemmatiser.insert(dict(zip(('word', 'lemma'), line)))
+        germanet_db.lemmatiser.insert(dict(list(zip(('word', 'lemma'), line))))
         num_lemmas += 1
     input_file.close()
     # index the collection on 'word'
