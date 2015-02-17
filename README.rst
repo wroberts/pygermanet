@@ -23,7 +23,7 @@ the lexical information (for setting up the MongoDB database, see the
 section `Setup`_, below).  On the local machine using the default
 port, this is as simple as::
 
-    >>> from pygermanet.germanet import load_germanet
+    >>> from pygermanet import load_germanet
     >>> gn = load_germanet()
 
 You can search GermaNet for synsets containing a particular lemmatised
@@ -176,7 +176,7 @@ distance version of `(Jiang and Conrath, 1997)`_, and 0.734 for
 
 Replication of the two studies, using the gur65_ data set::
 
-    from pygermanet.germanet import load_germanet, Synset
+    from pygermanet import load_germanet, Synset
     from scipy.stats.stats import pearsonr
     import codecs
     import numpy as np
@@ -305,7 +305,7 @@ two steps.
    instance.  Using default settings and connecting to a database on
    the local machine, this is accomplished with::
 
-       >>> from pygermanet.germanet import load_germanet
+       >>> from pygermanet import load_germanet
        >>> gn = load_germanet()
 
 License
