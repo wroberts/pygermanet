@@ -1,0 +1,3 @@
+include README.rst
+include pygermanet/baseforms_by_projekt_deutscher_wortschatz.txt.gz
+include pygermanet/sdewac-gn-words.tsv.gz
