@@ -542,7 +542,7 @@ def insert_lemmatisation_data(germanet_db):
 #  Information content for GermaNet similarity
 # ------------------------------------------------------------
 
-WORD_COUNT_FILE      = 'sdewac-gn-words.tsv.gz'
+WORD_COUNT_FILE = 'sdewac-gn-words.tsv.gz'
 
 def insert_infocontent_data(germanet_db):
     '''
