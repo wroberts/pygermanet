@@ -264,7 +264,7 @@ Requirements
 - Python 2.7 or Python 3 (tested with Python 3.4)
 - MongoDB_
 - pymongo_
-- future_
+- future_ (for Python 2)
 - `repoze.lru`_ (optional)
 
 .. _MongoDB:    https://www.mongodb.org/

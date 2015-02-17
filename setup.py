@@ -4,12 +4,17 @@
 from setuptools import setup, find_packages  # Always prefer setuptools over distutils
 from codecs import open  # To use a consistent encoding
 from os import path
+import sys
 
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the relevant file
 with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
+
+INSTALL_REQUIRES = ['pymongo']
+if sys.version_info.major < 3:
+    INSTALL_REQUIRES.append('future')
 
 setup(
     name='pygermanet',
@@ -69,7 +74,7 @@ setup(
     # project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['future', 'pymongo'],
+    install_requires=INSTALL_REQUIRES,
 
     # List additional groups of dependencies here (e.g. development dependencies).
     # You can install these using the following syntax, for example:
