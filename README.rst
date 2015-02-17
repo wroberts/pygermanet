@@ -275,7 +275,7 @@ Requirements
 Example setup::
 
     sudo apt-get install mongodb
-    sudo pip install pymongo repoze.lru
+    sudo pip install repoze.lru pygermanet
 
 Setup
 -----
