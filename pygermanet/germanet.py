@@ -14,6 +14,7 @@ from future.builtins import dict, int
 from pymongo import MongoClient
 import functools
 import math
+import sys
 try:
     import repoze.lru
 except ImportError:
@@ -355,10 +356,13 @@ class Synset(object):
         return min([len(path) for path in self.hypernym_paths])
 
     def __repr__(self):
-        return u'Synset({0}.{1}.{2})'.format(
+        reprstr = u'Synset({0}.{1}.{2})'.format(
             self.lemmas[0].orthForm,
             self.pos,
-            self.lemmas[0].sense).encode('utf-8')
+            self.lemmas[0].sense)
+        if sys.version_info.major < 3:
+            return reprstr.encode('utf-8')
+        return reprstr
 
     def __hash__(self):
         return hash(self._id)
@@ -629,11 +633,14 @@ class Lemma(object):
     def pertainyms(self):  return self.rels('has_pertainym')
 
     def __repr__(self):
-        return u'Lemma({0}.{1}.{2}.{3})'.format(
+        reprstr = u'Lemma({0}.{1}.{2}.{3})'.format(
             self.synset.lemmas[0].orthForm,
             self.synset.pos,
             self.synset.lemmas[0].sense,
-            self.orthForm).encode('utf-8')
+            self.orthForm)
+        if sys.version_info.major < 3:
+            return reprstr.encode('utf-8')
+        return reprstr
 
     def __hash__(self):
         return hash(self._id)
