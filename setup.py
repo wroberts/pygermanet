@@ -14,7 +14,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 INSTALL_REQUIRES = ['pymongo']
 if sys.version_info.major < 3:
-    INSTALL_REQUIRES.append('future')
+    INSTALL_REQUIRES.append('future >= 0.14')
 
 setup(
     name='pygermanet',
