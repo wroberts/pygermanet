@@ -45,6 +45,7 @@ setup(
         'Intended Audience :: Science/Research',
         'Natural Language :: German',
         'Topic :: Scientific/Engineering',
+        'Topic :: Text Processing :: Linguistic',
 
         # Pick your license as you wish (should match "license" above)
         'License :: OSI Approved :: MIT License',
