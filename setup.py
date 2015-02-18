@@ -17,7 +17,7 @@ if sys.version_info.major < 3:
     INSTALL_REQUIRES.append('future >= 0.14')
 
 with open(path.join(here, 'pygermanet', 'VERSION'), encoding='utf-8') as f:
-    pygermanet_version = f.read()
+    pygermanet_version = f.read().strip()
 
 setup(
     name='pygermanet',
