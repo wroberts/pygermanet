@@ -13,7 +13,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 INSTALL_REQUIRES = ['pymongo']
-if sys.version_info.major < 3:
+if sys.version_info[0] == 2:
     INSTALL_REQUIRES.append('future >= 0.14')
 
 with open(path.join(here, 'pygermanet', 'VERSION'), encoding='utf-8') as f:
