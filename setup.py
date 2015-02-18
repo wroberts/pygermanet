@@ -16,13 +16,16 @@ INSTALL_REQUIRES = ['pymongo']
 if sys.version_info.major < 3:
     INSTALL_REQUIRES.append('future >= 0.14')
 
+with open(path.join(here, 'pygermanet', 'VERSION'), encoding='utf-8') as f:
+    pygermanet_version = f.read()
+
 setup(
     name='pygermanet',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.1',
+    version=pygermanet_version,
 
     description='GermaNet API for Python',
     long_description=long_description,
@@ -88,7 +91,8 @@ setup(
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
     package_data={
-        'pygermanet': ['baseforms_by_projekt_deutscher_wortschatz.txt.gz',
+        'pygermanet': ['VERSION',
+                       'baseforms_by_projekt_deutscher_wortschatz.txt.gz',
                        'sdewac-gn-words.tsv.gz'],
     },
 

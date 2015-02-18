@@ -1,5 +1,6 @@
 include LICENSE.txt
 include README.rst
 include start_mongo.sh
+include pygermanet/VERSION
 include pygermanet/baseforms_by_projekt_deutscher_wortschatz.txt.gz
 include pygermanet/sdewac-gn-words.tsv.gz
