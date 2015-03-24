@@ -2,6 +2,10 @@
  pygermanet
 ============
 
+.. image:: https://pypip.in/version/pygermanet/badge.png
+    :target: https://pypi.python.org/pypi/pygermanet/
+    :alt: Latest Version
+
 GermaNet API for Python.
 
 Copyright (c) 23 March, 2014 Will Roberts <wildwilhelm@gmail.com>.
