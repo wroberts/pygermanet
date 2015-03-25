@@ -332,7 +332,8 @@ The NLTK_ project had an API once upon a time for interacting with
 GermaNet, but this has now been removed from the current NLTK
 distribution.  This API was called GermaNLTK_ and was described in
 some detail in `NLTK Issue 604`_.  pygermanet shamelessly imitates the
-interface of this older NLTK code.
+interface of this older NLTK code, which was, in turn, based on the
+standard NLTK interface to WordNet.
 
 .. _NLTK:           http://www.nltk.org/
 .. _GermaNLTK:      https://docs.google.com/document/d/1rdn0hOnJNcOBWEZgipdDfSyjJdnv_sinuAUSDSpiQns/edit?hl=en
