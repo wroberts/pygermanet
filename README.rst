@@ -324,6 +324,12 @@ is free for educational and researching purposes but not for
 commercial use. For more information visit:
 http://wortschatz.uni-leipzig.de/.
 
+The file ``sdewac-gn-words.tsv.gz`` contains data derived from the
+SdeWaC_ corpus, whose license and copyright status are
+slightly unclear to me.  I'm releasing the file under the
+`Creative Commons Attribution 4.0 International License`_.
+
+.. _`Creative Commons Attribution 4.0 International License`: http://creativecommons.org/licenses/by/4.0/
 
 History
 -------
