@@ -2,7 +2,7 @@
  pygermanet
 ============
 
-.. image:: https://pypip.in/version/pygermanet/badge.png
+.. image:: https://img.shields.io/pypi/v/pygermanet.svg
     :target: https://pypi.python.org/pypi/pygermanet/
     :alt: Latest Version
 
