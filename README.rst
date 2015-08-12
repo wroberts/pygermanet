@@ -284,7 +284,7 @@ Example setup::
 Setup
 -----
 
-GermaNet is distributed as a set of XML files, or as a PostgreSQL
+GermaNet_ is distributed as a set of XML files, or as a PostgreSQL
 database dump, neither of which is a convenient format to handle
 from inside Python.  This library delegates responsibility for
 handling the data to a MongoDB database.  As such, setup happens in
@@ -296,8 +296,8 @@ two steps.
        mkdir -p ./mongodb
        mongod --dbpath ./mongodb
 
-2. Import GermaNet into the MongoDB instance.  The ``mongo_import.py``
-   script needs the path to the directory that contains the GermaNet
+2. Import GermaNet_ into the MongoDB instance.  The ``mongo_import.py``
+   script needs the path to the directory that contains the GermaNet_
    XML files::
 
        python -m pygermanet.mongo_import ~/corpora/germanet/GN_V80/GN_V80_XML/
